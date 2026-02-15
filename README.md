@@ -5,7 +5,7 @@
 
 Bem-vindo ao repositório do **Sistema de Frente de Caixa (PDV)** da Borbolêlalá Moda Infantil. Este projeto visa facilitar o dia a dia da loja, permitindo o lançamento rápido de pedidos, cálculo de descontos e consulta de frete, tudo com uma interface mobile-first pensada para o uso em balcão.
 
-![alt text](image.png)
+![alt text](images/image.png)
 
 ## 📂 Estrutura do Projeto
 
