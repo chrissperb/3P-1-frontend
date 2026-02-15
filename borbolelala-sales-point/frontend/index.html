@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Vendas - Borbolêlalá</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="logo-area">
+            <h1>Borbolêlalá</h1>
+            <p>Gestão de Vendas</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="catalog-section">
+            <h2>Catálogo de Produtos</h2>
+            <div class="filters">
+                <button class="filter-btn active" data-cat="all">Todos</button>
+                <button class="filter-btn" data-cat="macacoes">Macacões</button>
+                <button class="filter-btn" data-cat="kits">Kits & Conjuntos</button>
+            </div>
+            <div id="product-grid" class="product-grid">
+                </div>
+        </section>
+
+        <aside class="sales-panel">
+            <div class="cart-container">
+                <h2>Resumo do Pedido</h2>
+                <div id="cart-items" class="cart-items">
+                    <p class="empty-msg">Nenhum item selecionado.</p>
+                </div>
+                
+                <div class="totals-area">
+                    <div class="row">
+                        <span>Subtotal:</span>
+                        <span id="subtotal-display">R$ 0,00</span>
+                    </div>
+                    <div class="row">
+                        <span>Desconto (%):</span>
+                        <input type="number" id="discount-input" min="0" max="100" value="0">
+                    </div>
+                    <div class="row total">
+                        <span>Total Final:</span>
+                        <span id="total-display">R$ 0,00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="customer-data">
+                <h3>Entrega (Cálculo de Frete)</h3>
+                <div class="cep-search">
+                    <input type="text" id="cep-input" placeholder="Digite o CEP" maxlength="9">
+                    <button id="btn-cep">Consultar</button>
+                </div>
+                <div id="address-result" class="address-result hidden">
+                    <p id="logradouro">--</p>
+                    <p id="localidade">--</p>
+                </div>
+            </div>
+
+            <button id="btn-finalize" class="btn-primary full-width">Finalizar Venda</button>
+        </aside>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
