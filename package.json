@@ -1,0 +1,20 @@
+{
+  "name": "3p-1-frontend",
+  "version": "1.0.0",
+  "description": "Projeto Fullstack com JS + Node",
+  "homepage": "https://github.com/chrissperb/3P-1-frontend#readme",
+  "bugs": {
+    "url": "https://github.com/chrissperb/3P-1-frontend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chrissperb/3P-1-frontend.git"
+  },
+  "license": "ISC",
+  "author": "Christian Sperb",
+  "type": "commonjs",
+  "main": "cli.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
