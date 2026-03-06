@@ -1,4 +1,5 @@
 const fs = require('fs/promises');
+const path = require('path');
 
 class Pedido {
     constructor(cliente) {
@@ -50,10 +51,18 @@ class Pedido {
             totalFinal: this.calcularTotal()
         };
 
-            const nomeArquivo = `pedido_${Date.now()}.json`;
-            await fs.writeFile(`./files/${nomeArquivo}`, JSON.stringify(dadosPedido, null, 2));
-            return nomeArquivo;
+        const nomeArquivo = `pedido_${Date.now()}.json`;
+        const diretorioDestino = path.join(__dirname, 'files'); 
+        const caminhoCompleto = path.join(diretorioDestino, nomeArquivo);
+
+        try {
+            await fs.mkdir(diretorioDestino, { recursive: true });
+            await fs.writeFile(caminhoCompleto, JSON.stringify(dadosPedido, null, 2));
+            return caminhoCompleto; 
+        } catch (erro) {
+            throw new Error(`Falha ao salvar o arquivo: ${erro.message}`);
         }
     }
+}
 
-    module.exports = Pedido;
+module.exports = Pedido;
