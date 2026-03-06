@@ -50,10 +50,10 @@ class Pedido {
             totalFinal: this.calcularTotal()
         };
 
-        const nomeArquivo = `pedido_${Date.now()}.json`;
-        await fs.writeFile(nomeArquivo, JSON.stringify(dadosPedido, null, 2));
-        return nomeArquivo;
+            const nomeArquivo = `pedido_${Date.now()}.json`;
+            await fs.writeFile(`./files/${nomeArquivo}`, JSON.stringify(dadosPedido, null, 2));
+            return nomeArquivo;
+        }
     }
-}
 
-module.exports = Pedido;
+    module.exports = Pedido;
