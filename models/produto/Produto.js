@@ -1,20 +1,38 @@
-class Produto {
-    constructor(id, nome, preco) {
-        this.validarPreco(preco);
-        this.id = id;
-        this.nome = nome;
-        this.preco = parseFloat(preco);
-    }
+const mongoose = require('mongoose');
 
-    validarPreco(preco) {
-        if (isNaN(preco) || preco <= 0) {
-            throw new Error("O preço deve ser um número maior que zero.");
-        }
-    }
+const ProdutoSchema = new mongoose.Schema({
 
-    obterDetalhes() {
-        return `[ID: ${this.id}] ${this.nome} - R$ ${this.preco.toFixed(2)}`;
+    id: { 
+        type: Number, 
+        required: true, 
+        unique: true 
+    },
+    nome: { 
+        type: String, 
+        required: true 
+    },
+    categoria: { 
+        type: String, 
+        required: true 
+    },
+    quantidade: { 
+        type: Number, 
+        required: true,
+        default: 0 
+    },
+    preco: { 
+        type: Number, 
+        required: true,
+        default: 0 
+    },
+    precoVenda: { 
+        type: Number, 
+        required: false, 
+        default: 0 
     }
-}
+}, {
+    
+    versionKey: false 
+});
 
-module.exports = Produto;
+module.exports = mongoose.model('Produto', ProdutoSchema);
