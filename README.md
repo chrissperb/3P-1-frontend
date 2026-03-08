@@ -5,7 +5,7 @@
 
 Bem-vindo ao repositório do **Sistema de Frente de Caixa (PDV)** da Borbolêlalá Moda Infantil. Este projeto visa facilitar o dia a dia da loja, permitindo o lançamento rápido de pedidos, cálculo de descontos e consulta de frete, tudo com uma interface mobile-first pensada para o uso em balcão.
 
-![alt text](images/image.png)
+![Print de tela contendo a página inicial do projeto](./views/images/image.png)
 
 ## 📂 Estrutura do Projeto
 
@@ -88,12 +88,14 @@ Este projeto está configurado para rodar via GitHub Actions/Pages.
 
 - **JavaScript** (ES6+, Async/Await, DOM Manipulation)
 
+- **Node:** Biblioteca de utilitários para o JavaScript
+
 - **API Externa:** ViaCEP
 
 ## 🔮 Próximos Passos (Roadmap)
 - [ ] Criar Backend em **Node.js/Express**.
 
-- [ ] Implementar Banco de Dados **MongoDB** para persistência do catálogo.
+- [X] Implementar Banco de Dados **MongoDB** para persistência do catálogo.
 
 - [ ] Criar sistema de Login para vendedores.
 

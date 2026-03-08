@@ -3,17 +3,8 @@
  * @description Lógica de catálogo, carrinho e API externa.
  */
 
-// 1. MOCK DATA (Simulando o Banco de Dados MongoDB)
-const products = [
-    { id: 1, name: "Macacão Algodão Egípcio", price: 89.90, category: "macacoes", sizes: ["P", "M", "G"] },
-    { id: 2, name: "Body Manga Curta Floral", price: 45.00, category: "macacoes", sizes: ["0-3m", "3-6m"] },
-    { id: 3, name: "Kit Saída Maternidade", price: 159.90, category: "kits", sizes: ["RN"] },
-    { id: 4, name: "Conjunto Moletom Dino", price: 110.00, category: "kits", sizes: ["1", "2", "3"] },
-    { id: 5, name: "Vestido Borboletas", price: 79.90, category: "macacoes", sizes: ["M", "G"] },
-    { id: 6, name: "Kit 3 Paninhos de Boca", price: 39.90, category: "kits", sizes: ["U"] },
-];
-
 // Estado da Aplicação
+let products = []
 let cart = [];
 let discountPercent = 0;
 
@@ -25,6 +16,30 @@ const totalDisplay = document.getElementById('total-display');
 const discountInput = document.getElementById('discount-input');
 const btnCep = document.getElementById('btn-cep');
 const cepInput = document.getElementById('cep-input');
+
+async function carregarCatalogo() {
+    productGrid.innerHTML = '<p style="text-align:center;">Carregando roupinhas... 🦋</p>';
+    
+    try {
+        const resposta = await fetch('/api/produtos');
+        const dadosDoBanco = await resposta.json();
+
+        products = dadosDoBanco.map(p => ({
+            id: p.id,
+            name: p.nome,
+            price: p.precoVenda || p.preco || 0, 
+            category: p.categoria ? p.categoria.toLowerCase() : 'outros',
+            sizes: ['U']
+        }));
+
+        renderFilters();
+        renderCatalog();
+
+    } catch (error) {
+        console.error("Erro ao carregar da API:", error);
+        productGrid.innerHTML = '<p style="color:red; text-align:center;">Erro ao carregar o catálogo.</p>';
+    }
+}
 
 // 2. FUNÇÕES DE RENDERIZAÇÃO
 const formatCurrency = (value) => {
@@ -77,7 +92,6 @@ const renderCart = () => {
 window.addToCart = (id) => {
     const product = products.find(p => p.id === id);
     if (product) {
-        // Clonar objeto para evitar referência
         cart.push({ ...product }); 
         renderCart();
     }
@@ -105,15 +119,36 @@ discountInput.addEventListener('input', (e) => {
     updateTotals();
 });
 
-// Filtros de Categoria
-document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        // Remove active class de todos
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        renderCatalog(e.target.dataset.cat);
+// Filtros de Categoria Dinâmicos
+const renderFilters = () => {
+    const filtersContainer = document.getElementById('dynamic-filters');
+    filtersContainer.innerHTML = ''; 
+
+    const todasCategorias = products.map(p => p.category);
+    const categoriasUnicas = ['all', ...new Set(todasCategorias)];
+
+    categoriasUnicas.forEach(cat => {
+        const btn = document.createElement('button');
+        
+        btn.className = `filter-btn ${cat === 'all' ? 'active' : ''}`;
+        btn.dataset.cat = cat;
+        
+        if (cat === 'all') {
+            btn.textContent = 'Todos';
+        } else {
+            btn.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+        }
+
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            renderCatalog(e.target.dataset.cat);
+        });
+
+        filtersContainer.appendChild(btn);
     });
-});
+};
 
 // 4. CONSUMO DE API EXTERNA (ViaCEP)
 btnCep.addEventListener('click', async () => {
@@ -149,5 +184,6 @@ btnCep.addEventListener('click', async () => {
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
+    carregarCatalogo();
     renderCatalog();
 });
