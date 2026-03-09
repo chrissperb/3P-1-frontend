@@ -6,44 +6,35 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-const Produto = require('./models/produto/Produto');
+
+// 🦋 IMPORTAMOS AS NOSSAS ROTAS
+const produtoRoutes = require('./routes/produtoRoutes');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 1. Middlewares (Os "filtros" do Express)
+// 1. Middlewares
 app.use(cors()); 
 app.use(express.json()); 
 
 // 2. Conexão com o MongoDB
 mongoose.connect(process.env.MONGODB_URI)
-    .then(() => {
-        console.log('✅ Conectado ao MongoDB com sucesso! (Base de Estoque/Vendas)');
-    })
-    .catch((erro) => {
-        console.error('❌ Erro ao conectar no MongoDB:', erro.message);
-    });
+    .then(() => console.log('✅ Conectado ao MongoDB com sucesso!'))
+    .catch((erro) => console.error('❌ Erro ao conectar no MongoDB:', erro.message));
 
 // 3. Sincronização com o Frontend
 const pastaClient = path.join(__dirname, 'client');
 app.use(express.static(pastaClient));
 
-// 4. Modelos Mongoose (Definição de Esquemas)
-app.get('/api/produtos', async (req, res) => {
-    try {
-        const produtosDoBanco = await Produto.find();
-        res.json(produtosDoBanco); 
-    } catch (error) {
-        console.error("Erro na API de produtos:", error);
-        res.status(500).json({ erro: 'Falha ao buscar o catálogo' });
-    }
-});
+// 4. ROTAS DA API (Padrão MVC)
+app.use('/api', produtoRoutes);
 
-// Rota de fallback: Se o usuário digitar qualquer URL que não seja uma API, manda pro index.html
+// 5. Rota de fallback (Sempre no final)
 app.get(/.*/, (req, res) => {
     res.sendFile(path.join(pastaClient, 'index.html'));
 });
 
-// 5. Inicialização do Servidor
+// 6. Inicialização do Servidor
 app.listen(PORT, () => {
     console.log(`🦋 Servidor Borbolêlalá rodando na porta ${PORT}`);
     console.log(`👉 Acesse: http://localhost:${PORT}`);

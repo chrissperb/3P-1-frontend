@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
 const ProdutoSchema = new mongoose.Schema({
-
     id: { 
         type: Number, 
         required: true, 
@@ -29,9 +28,12 @@ const ProdutoSchema = new mongoose.Schema({
         type: Number, 
         required: false, 
         default: 0 
+    },
+    tamanhos: {
+        type: [String], 
+        default: ['U']  
     }
 }, {
-    
     versionKey: false 
 });
 

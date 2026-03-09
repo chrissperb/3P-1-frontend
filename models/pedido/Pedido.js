@@ -1,68 +1,61 @@
-const fs = require('fs/promises');
-const path = require('path');
+const mongoose = require('mongoose');
 
-class Pedido {
-    constructor(cliente) {
-        this.cliente = cliente;
-        this.itens = [];
-        this.endereco = null;
+// 1. Sub-esquema para organizar os itens dentro do carrinho
+const ItemPedidoSchema = new mongoose.Schema({
+    produtoId: { 
+        type: Number,
+        required: true 
+    },
+    nome: { 
+        type: String, 
+        required: true 
+    },
+    quantidade: { 
+        type: Number, 
+        required: true,
+        min: [1, 'A quantidade mínima é 1']
+    },
+    precoUnitario: { 
+        type: Number, 
+        required: true 
+    },
+    subtotal: { 
+        type: Number, 
+        required: true 
     }
+}, { 
+    _id: false 
+});
 
-    adicionarItem(produto, quantidade) {
-        if (quantidade <= 0) throw new Error("A quantidade deve ser maior que zero.");
-        this.itens.push({ produto, quantidade });
+// 2. Esquema Principal do Pedido
+const PedidoSchema = new mongoose.Schema({
+    cliente: {
+        type: String,
+        required: true,
+        trim: true 
+    },
+    endereco: {
+        cep: { type: String, required: true },
+        logradouro: { type: String, required: true },
+        bairro: { type: String },
+        cidade: { type: String, required: true },
+        estado: { type: String, required: true }
+    },
+    itens: [ItemPedidoSchema],
+    totalFinal: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    status: {
+        type: String,
+        enum: ['Pendente', 'Pago', 'Enviado', 'Cancelado'], 
+        default: 'Pendente'
     }
+}, {
+    versionKey: false,
+    timestamps: true
+});
 
-    calcularTotal() {
-        return this.itens.reduce((acc, item) => acc + (item.produto.preco * item.quantidade), 0);
-    }
-
-    async definirEndereco(cep) {
-        const cepLimpo = cep.replace(/\D/g, '');
-        if (cepLimpo.length !== 8) throw new Error("CEP inválido. Deve conter 8 dígitos.");
-
-        try {
-            const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
-            const data = await response.json();
-
-            if (data.erro) throw new Error("CEP não encontrado.");
-
-            this.endereco = {
-                cep: data.cep, logradouro: data.logradouro, bairro: data.bairro,
-                cidade: data.localidade, estado: data.uf
-            };
-            return this.endereco;
-        } catch (erro) {
-            throw new Error(`Falha ao buscar CEP: ${erro.message}`);
-        }
-    }
-
-    async salvarPedido() {
-        const dadosPedido = {
-            data: new Date().toISOString(),
-            cliente: this.cliente,
-            endereco: this.endereco,
-            itens: this.itens.map(i => ({
-                nome: i.produto.nome,
-                detalhes: i.produto.obterDetalhes(),
-                quantidade: i.quantidade,
-                subtotal: i.produto.preco * i.quantidade
-            })),
-            totalFinal: this.calcularTotal()
-        };
-
-        const nomeArquivo = `pedido_${Date.now()}.json`;
-        const diretorioDestino = path.join(__dirname, 'files'); 
-        const caminhoCompleto = path.join(diretorioDestino, nomeArquivo);
-
-        try {
-            await fs.mkdir(diretorioDestino, { recursive: true });
-            await fs.writeFile(caminhoCompleto, JSON.stringify(dadosPedido, null, 2));
-            return caminhoCompleto; 
-        } catch (erro) {
-            throw new Error(`Falha ao salvar o arquivo: ${erro.message}`);
-        }
-    }
-}
-
-module.exports = Pedido;
+// O Mongoose criará uma coleção chamada 'pedidos' automaticamente
+module.exports = mongoose.model('Pedido', PedidoSchema);
