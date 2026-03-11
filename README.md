@@ -1,104 +1,148 @@
-# 🦋 Borbolêlalá - Sistema de Gestão de Vendas (PDV)
+# 🦋 Borbolêlalá - Sistema de Gestão de Vendas e Estoque
 
-> **Versão:** 1.0.0 (MVP Frontend)  
+> **Versão:** 2.0.0 (MVP Fullstack)  
 > **Status:** Em Desenvolvimento 🚧
 
-Bem-vindo ao repositório do **Sistema de Frente de Caixa (PDV)** da Borbolêlalá Moda Infantil. Este projeto visa facilitar o dia a dia da loja, permitindo o lançamento rápido de pedidos, cálculo de descontos e consulta de frete, tudo com uma interface mobile-first pensada para o uso em balcão.
+Bem-vindo ao repositório do **Sistema de Frente de Caixa (PDV) e Backoffice** da Borbolêlalá Moda Infantil. Este projeto evoluiu para uma aplicação Fullstack completa, permitindo o lançamento rápido de pedidos, cálculo de frete real, e gerenciamento de estoque integrado ao banco de dados, tudo com uma interface mobile-first pensada para o uso dinâmico da loja.
 
-![Print de tela contendo a página inicial do projeto](./views/images/image.png)
+## Ponto de Vendas (PDV)
+![Print de tela contendo a página de vendas do projeto](./views/images/image_v2_PDV.png)
+## Gerenciamento de Estoque
+![Print de tela contendo a página de estoque do projeto](./views/images/image_v2_Estoque.png)
 
-## 📂 Estrutura do Projeto
+## 📂 Arquitetura e Estrutura do Projeto
 
-O projeto segue uma arquitetura **SPA (Single Page Application)** simples, baseada em tecnologias web padrão (Vanilla JS), sem necessidade de transpilação nesta etapa.
+O projeto migrou de uma SPA estática para um **Monolito Modular** utilizando o padrão **MVC (Model-View-Controller)** no Backend (Node.js) e Vanilla JS no Frontend.
 
 ```plaintext
 borbolelala-pdv/
 │
-├── index.html      # Estrutura Semântica (Catálogo e Checkout)
-├── style.css       # Estilização (Identidade Visual, Grid e Flexbox)
-├── app.js          # Lógica de Negócio, Mock de Dados e APIs
-└── README.md       # Documentação do Projeto
+├── controllers/          
+│   ├── FreteController.js
+│   ├── PedidoController.js
+│   └── ProdutoController.js
+│
+├── models/               
+│   ├── pedido/Pedido.js
+│   └── produto/Produto.js
+│
+├── routes/               
+│   ├── freteRoutes.js
+│   ├── pedidoRoutes.js
+│   └── produtoRoutes.js
+│
+├── client/               
+│   ├── index.html        
+│   ├── estoque.html      
+│   ├── app.js            
+│   ├── estoque.js        
+│   └── styles/
+│       └──style.css  
+│
+├── server.js             
+└── package.json          
 ```
+## 🚀 Como Rodar o Projeto (Ambiente de Desenvolvimento)
+Como a aplicação agora possui um Backend em Node.js e um Banco de Dados, ela deve ser executada localmente através de um servidor.
 
-### Detalhes dos Arquivos:
-- `index.html`: Contém o esqueleto da aplicação, dividido em duas grandes áreas: Catálogo de Produtos e Painel de Vendas.
+### Passo a passo:
 
-- `style.css`: Utiliza Variáveis CSS (:root) para gerenciar a paleta de cores (Lilás, Verde Água) e Grid Layout para responsividade automática.
+**1. Clone este repositório:**
 
-- `app.js`: Centraliza a lógica. Atualmente opera com dados "Mockados" (simulados) para produtos, mas já possui integração real via fetch para consulta de CEP.
-
-
-## 🚀 Como Rodar o Projeto
-Como esta etapa é puramente Frontend Estático, você tem duas opções:
-
-**Opção 1: Rodar Localmente**
-
-1. Clone este repositório:
-
-```Bash
+```
 git clone https://github.com/chrissperb/borbolelala-pdv.git
 ```
-2. Navegue até a pasta do projeto.
 
-3. Abra o arquivo `index.html` diretamente no seu navegador (Chrome, Firefox, Edge).
+**2. Navegue até a pasta do projeto e instale as dependências:**
 
-- **Dica Pro:** Se usar VS Code, instale a extensão Live Server e clique em "Go Live" para ter atualização automática.
+```
+cd borbolelala-pdv
+npm install
+```
+**3. Crie um arquivo chamado `.env` na raiz do projeto e configure suas credenciais:**
+```
+PORT=3000
+MONGODB_URI=sua_string_de_conexao_do_mongodb_aqui
+SUPER_FRETE_TOKEN=seu_token_oficial_da_super_frete_aqui
+```
+**4. Inicie o servidor:**
+```
+npm run dev
+# ou
+node server.js
+```
+**5. Acesse no seu navegador: http://localhost:3000**
 
-**Opção 2: GitHub Pages (Deploy Automático)**
-
-Este projeto está configurado para rodar via GitHub Actions/Pages.
-
-1. Faça o push do código para a branch `main`.
-
-2. Acesse as configurações do repositório no GitHub -> **Pages**.
-
-3. O sistema estará disponível em: `https://chrissperb.github.io/borbolelala-pdv/`
+*⚠️ Nota sobre Deploy: Como o projeto agora é Fullstack, o GitHub Pages não suporta o backend. O deploy da versão final deverá ser feito em plataformas voltadas para Node.js, como Render, Railway ou Heroku.*
 
 ## ✨ Funcionalidades Implementadas
-**1. Catálogo de Produtos (Mock)**
-- Exibição de produtos em Grid responsivo.
+**1. Gerenciamento de Estoque (Backoffice)**
 
-- Suporte a variações típicas de moda infantil (Tamanhos: RN, P, M, G, 1, 2, 3).
+**- CRUD Completo:** Criação, leitura, atualização e exclusão de produtos no MongoDB.
 
-- **Filtros de Categoria:** Permite alternar rapidamente entre "Macacões", "Kits", etc.
+**- Tabela Dinâmica:** Visualização em tempo real da quantidade de peças disponíveis e preços.
 
-**2. Carrinho e Calculadora de Vendas**
-- **Adição/Remoção:** Itens são adicionados a uma lista temporária (array em memória).
+**2. Catálogo de Produtos e PDV**
 
-- **Cálculo Automático:** O subtotal é atualizado a cada interação.
+- Exibição de produtos consumidos diretamente da API do banco de dados.
 
-- **Descontos Dinâmicos:** Campo para inserir porcentagem de desconto (ex: 5% ou 10% à vista), recalculando o total final instantaneamente.
+- Filtros Dinâmicos: Os botões de categoria (ex: Cueca, Vestido, Acessórios) são gerados automaticamente com base nas categorias cadastradas no estoque.
 
-**3. Integração com API (CEP)**
-- Consumo da API pública `ViaCEP`.
+**3. Carrinho Inteligente e Checkout Real**
 
-- Ao digitar o CEP, o sistema preenche automaticamente Cidade, Estado e Logradouro.
+- Agrupamento de itens repetidos no carrinho.
 
-- Lógica visual de validação (exibe erro se o CEP for inválido).
+- Baixa Automática: Ao finalizar a venda, o sistema subtrai a quantidade exata do banco de dados automaticamente.
 
-**4. UI/UX (Interface)**
-- **Mobile-First:** Layout otimizado para celulares (botões grandes para toque).
+- Histórico de pedidos salvo com segurança na coleção pedidos (com status, dados do cliente e total).
 
-- **Feedback Visual:** Cores suaves e mensagens de estado (ex: carrinho vazio, carregando CEP).
+**4. Integração Logística Avançada (Super Frete)**
+
+- Cálculo de frete (PAC, Sedex, Mini Envios) baseado nas dimensões e peso reais da encomenda.
+
+- Servidor atuando como Proxy (Ponte) para contornar bloqueios de CORS e proteger o Token da API.
+
+**5. UI/UX (Interface)**
+
+- Navegação fluida entre PDV e Estoque utilizando um Toggle Switch moderno.
+
+- Interface Responsiva (Mobile-First) via CSS Grid e Flexbox.
 
 ## 🛠️ Tecnologias Utilizadas
-- **HTML5** (Semântico)
+### Backend:
 
-- **CSS3** (Flexbox, Grid, CSS Variables)
+- Node.js & Express (Criação do Servidor e API REST)
 
-- **JavaScript** (ES6+, Async/Await, DOM Manipulation)
+- MongoDB & Mongoose (Banco de Dados NoSQL e Modelagem)
 
-- **Node:** Biblioteca de utilitários para o JavaScript
+- Axios (Cliente HTTP para integrações externas)
 
-- **API Externa:** ViaCEP
+- Dotenv (Segurança de credenciais)
+
+### Frontend:
+
+- HTML5 & CSS3 (Semântica, Flexbox, Grid)
+
+- Vanilla JavaScript (ES6+, DOM Manipulation, Fetch API)
+
+### Integrações:
+
+- API Super Frete (Cálculo logístico avançado)
 
 ## 🔮 Próximos Passos (Roadmap)
-- [ ] Criar Backend em **Node.js/Express**.
+[x] Criar Backend em Node.js/Express.
 
-- [X] Implementar Banco de Dados **MongoDB** para persistência do catálogo.
+[x] Implementar Banco de Dados MongoDB para persistência do catálogo.
 
-- [ ] Criar sistema de Login para vendedores.
+[x] Criar CRUD de produtos e controle de estoque real.
+
+[x] Integrar API de fretes com cálculo de dimensões.
+
+[ ] Criar sistema de Login (Autenticação JWT) para controle de acesso de vendedores.
+
+[ ] Desenvolver Dashboard de Relatórios (Vendas do mês, produtos mais vendidos).
+
+[ ] Deploy do Monolito em nuvem (Ex: Render).
 
 ---
-
 Desenvolvido com 💜 pela equipe de TI da Borbolêlalá.
