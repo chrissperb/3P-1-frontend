@@ -1,0 +1,184 @@
+/**
+ * Borbolêlalá - Controle de Estoque (Backoffice)
+ * @description Lógica de CRUD conectada à API do Backend.
+ */
+
+// ==========================================
+// 1. ESTADO E SELETORES DOM
+// ==========================================
+let modoEdicao = false; // Controla se estamos criando ou atualizando um produto
+
+const formProduto = document.getElementById('form-produto');
+const btnCancelar = document.getElementById('btn-cancelar');
+const formTitle = document.getElementById('form-title');
+const estoqueTbody = document.getElementById('estoque-tbody');
+
+// Inputs do Formulário
+const inputId = document.getElementById('input-id');
+const inputNome = document.getElementById('input-nome');
+const inputCategoria = document.getElementById('input-categoria');
+const inputTamanhos = document.getElementById('input-tamanhos');
+const inputPreco = document.getElementById('input-preco');
+const inputPrecoVenda = document.getElementById('input-preco-venda');
+const inputQuantidade = document.getElementById('input-quantidade');
+
+// ==========================================
+// 2. BUSCAR E RENDERIZAR O ESTOQUE (READ)
+// ==========================================
+async function carregarEstoque() {
+    estoqueTbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Carregando estoque... 🦋</td></tr>';
+    
+    try {
+        const resposta = await fetch('/api/produtos');
+        const produtos = await resposta.json();
+
+        estoqueTbody.innerHTML = ''; // Limpa a tabela
+
+        if (produtos.length === 0) {
+            estoqueTbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum produto cadastrado.</td></tr>';
+            return;
+        }
+
+        produtos.forEach(produto => {
+            const tr = document.createElement('tr');
+            tr.style.borderBottom = '1px solid #eee';
+            
+            // Formatando os valores para exibição
+            const precoExibicao = (produto.precoVenda || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const tamanhosTexto = produto.tamanhos ? produto.tamanhos.join(', ') : 'U';
+
+            tr.innerHTML = `
+                <td style="padding: 10px;"><strong>${produto.id}</strong></td>
+                <td style="padding: 10px;">
+                    ${produto.nome} <br>
+                    <small style="color: #888;">Tamanhos: ${tamanhosTexto}</small>
+                </td>
+                <td style="padding: 10px; text-transform: capitalize;">${produto.categoria}</td>
+                <td style="padding: 10px; font-weight: bold; color: ${produto.quantidade <= 2 ? 'red' : 'green'};">${produto.quantidade} un</td>
+                <td style="padding: 10px;">${precoExibicao}</td>
+                <td style="padding: 10px;">
+                    <button class="btn-edit" onclick='prepararEdicao(${JSON.stringify(produto)})' style="margin-right: 5px; cursor:pointer;">✏️</button>
+                    <button class="btn-delete" onclick="deletarProduto(${produto.id})" style="cursor:pointer;">🗑️</button>
+                </td>
+            `;
+            estoqueTbody.appendChild(tr);
+        });
+
+    } catch (error) {
+        console.error("Erro ao carregar estoque:", error);
+        estoqueTbody.innerHTML = '<tr><td colspan="6" style="color:red; text-align:center;">Erro ao buscar produtos.</td></tr>';
+    }
+}
+
+// ==========================================
+// 3. SALVAR PRODUTO (CREATE / UPDATE)
+// ==========================================
+formProduto.addEventListener('submit', async (e) => {
+    e.preventDefault(); // Evita que a página recarregue
+
+    // Coleta os dados dos inputs
+    const dadosProduto = {
+        id: parseInt(inputId.value),
+        nome: inputNome.value.trim(),
+        categoria: inputCategoria.value.trim().toLowerCase(),
+        // Transforma "P, M, G" em um array ["P", "M", "G"]
+        tamanhos: inputTamanhos.value.split(',').map(t => t.trim().toUpperCase()),
+        preco: parseFloat(inputPreco.value),
+        precoVenda: parseFloat(inputPrecoVenda.value),
+        quantidade: parseInt(inputQuantidade.value)
+    };
+
+    try {
+        let url = '/api/produtos';
+        let metodo = 'POST'; // Padrão é criar (CREATE)
+
+        if (modoEdicao) {
+            url = `/api/produtos/${dadosProduto.id}`;
+            metodo = 'PUT'; // Se for edição, mudamos para atualizar (UPDATE)
+        }
+
+        const resposta = await fetch(url, {
+            method: metodo,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dadosProduto)
+        });
+
+        const resultado = await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(resultado.erro || 'Falha ao salvar produto.');
+        }
+
+        alert(resultado.mensagem); // Avisa o usuário que deu certo
+        limparFormulario();
+        carregarEstoque(); // Atualiza a tabela com o novo dado
+
+    } catch (error) {
+        alert(`Erro: ${error.message}`);
+    }
+});
+
+// ==========================================
+// 4. PREPARAR EDIÇÃO (Jogar dados para o form)
+// ==========================================
+window.prepararEdicao = (produto) => {
+    modoEdicao = true;
+    formTitle.innerText = `Editando Produto: ${produto.nome}`;
+    btnCancelar.style.display = 'block';
+    
+    // Trava o ID para o usuário não mudar a chave primária sem querer
+    inputId.readOnly = true; 
+    inputId.style.backgroundColor = '#eee';
+
+    // Preenche os inputs
+    inputId.value = produto.id;
+    inputNome.value = produto.nome;
+    inputCategoria.value = produto.categoria;
+    inputTamanhos.value = produto.tamanhos ? produto.tamanhos.join(', ') : 'U';
+    inputPreco.value = produto.preco;
+    inputPrecoVenda.value = produto.precoVenda;
+    inputQuantidade.value = produto.quantidade;
+};
+
+// ==========================================
+// 5. CANCELAR EDIÇÃO E LIMPAR FORMULÁRIO
+// ==========================================
+const limparFormulario = () => {
+    formProduto.reset(); // Limpa os inputs
+    modoEdicao = false;
+    formTitle.innerText = 'Cadastrar Novo Produto';
+    btnCancelar.style.display = 'none';
+    
+    // Destrava o ID
+    inputId.readOnly = false;
+    inputId.style.backgroundColor = '';
+};
+
+btnCancelar.addEventListener('click', limparFormulario);
+
+// ==========================================
+// 6. DELETAR PRODUTO (DELETE)
+// ==========================================
+window.deletarProduto = async (id) => {
+    if (!confirm(`Tem certeza que deseja remover o produto ID ${id} do estoque? Essa ação não pode ser desfeita.`)) {
+        return; // Se o usuário clicar em Cancelar, aborta
+    }
+
+    try {
+        const resposta = await fetch(`/api/produtos/${id}`, {
+            method: 'DELETE'
+        });
+
+        const resultado = await resposta.json();
+
+        if (!resposta.ok) throw new Error(resultado.erro);
+
+        alert(resultado.mensagem);
+        carregarEstoque(); // Atualiza a tabela
+
+    } catch (error) {
+        alert(`Erro: ${error.message}`);
+    }
+};
+
+document.addEventListener('DOMContentLoaded', carregarEstoque);

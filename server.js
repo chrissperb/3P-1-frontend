@@ -7,8 +7,10 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 
-// 🦋 IMPORTAMOS AS NOSSAS ROTAS
+// IMPORTAÇÃO DAS ROTAS
 const produtoRoutes = require('./routes/produtoRoutes');
+const pedidoRoutes = require('./routes/pedidoRoutes');
+const freteRoutes = require('./routes/freteRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,6 +30,8 @@ app.use(express.static(pastaClient));
 
 // 4. ROTAS DA API (Padrão MVC)
 app.use('/api', produtoRoutes);
+app.use('/api', pedidoRoutes);
+app.use('/api', freteRoutes);
 
 // 5. Rota de fallback (Sempre no final)
 app.get(/.*/, (req, res) => {

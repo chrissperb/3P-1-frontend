@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estoque - Borbolêlalá</title>
+    <link rel="stylesheet" href="./styles/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="main-header">
+        <div class="logo-area">
+            <h1>Borbolêlalá</h1>
+            <p>Controle de Estoque</p>
+        </div>
+        
+        <div class="mode-switch">
+            <a href="index.html" class="switch-option">PDV (Vendas)</a>
+            <a href="estoque.html" class="switch-option active">Estoque</a>
+        </div>
+    </header>
+
+    <main class="container estoque-layout">
+        <aside class="sales-panel">
+            <div class="cart-container">
+                <h2 id="form-title">Cadastrar Novo Produto</h2>
+                
+                <form id="form-produto" class="estoque-form">
+                    <div class="row">
+                        <label>ID Numérico (Código do Produto):</label>
+                        <input type="number" id="input-id" required placeholder="Ex: 101">
+                    </div>
+                    
+                    <div class="row">
+                        <label>Nome da Roupinha:</label>
+                        <input type="text" id="input-nome" required placeholder="Ex: Vestido Floral">
+                    </div>
+
+                    <div class="row">
+                        <label>Categoria:</label>
+                        <input type="text" id="input-categoria" required placeholder="Ex: vestido">
+                    </div>
+
+                    <div class="row">
+                        <label>Tamanhos (Separe por vírgula):</label>
+                        <input type="text" id="input-tamanhos" placeholder="Ex: P, M, G ou U" value="U">
+                    </div>
+
+                    <div class="row" style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label>Preço Custo (R$):</label>
+                            <input type="number" id="input-preco" step="0.01" required value="0">
+                        </div>
+                        <div style="flex: 1;">
+                            <label>Preço Venda (R$):</label>
+                            <input type="number" id="input-preco-venda" step="0.01" required value="0">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <label>Quantidade em Estoque:</label>
+                        <input type="number" id="input-quantidade" required value="1">
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="submit" class="btn-primary full-width">Salvar Produto</button>
+                        <button type="button" id="btn-cancelar" class="btn-secondary full-width" style="display: none;">Cancelar Edição</button>
+                    </div>
+                </form>
+            </div>
+        </aside>
+
+        <section class="catalog-section">
+            <h2>Produtos Cadastrados</h2>
+            <div class="table-responsive">
+                <table class="estoque-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #ddd;">
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Categoria</th>
+                            <th>Estoque</th>
+                            <th>Preço Venda</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="estoque-tbody">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="estoque.js"></script> 
+</body>
+</html>

@@ -150,35 +150,88 @@ const renderFilters = () => {
     });
 };
 
-// 4. CONSUMO DE API EXTERNA (ViaCEP)
+// ==========================================
+// 4. CONSUMO DE API (Cálculo de Frete)
+// ==========================================
+const pesoInput = document.getElementById('peso-input');
+const alturaInput = document.getElementById('altura-input');
+const larguraInput = document.getElementById('largura-input');
+const comprimentoInput = document.getElementById('comprimento-input');
+
 btnCep.addEventListener('click', async () => {
-    const cep = cepInput.value.replace(/\D/g, '');
+    const cepDestino = cepInput.value.replace(/\D/g, '');
     const resultDiv = document.getElementById('address-result');
     
-    if (cep.length !== 8) {
-        alert('CEP inválido. Digite 8 números.');
+    // Validação do CEP de destino
+    if (cepDestino.length !== 8) {
+        alert('CEP de destino inválido. Digite 8 números.');
+        return;
+    }
+
+    // Coleta as dimensões do pacote
+    const peso = parseFloat(pesoInput.value) || 0;
+    const altura = parseInt(alturaInput.value) || 0;
+    const largura = parseInt(larguraInput.value) || 0;
+    const comprimento = parseInt(comprimentoInput.value) || 0;
+
+    // Se a vendedora não preencher as medidas, avisa que é necessário
+    if (peso === 0 || altura === 0) {
+        alert('Para calcular o frete, preencha o peso e as medidas do pacote.');
         return;
     }
 
     try {
-        resultDiv.classList.remove('hidden');
-        resultDiv.innerHTML = '<p>Buscando...</p>';
-        
-        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const payload = {
+            from: { postal_code: "88495000" },
+            to: { postal_code: cepDestino },
+            services: '1,2,17',
+            options: {
+                own_hand: false,
+                receipt: false,
+                insurance_value: 0,
+                use_insurance_value: false
+            },
+            package: { 
+                weight: peso, 
+                height: altura, 
+                width: largura, 
+                length: comprimento 
+            }
+        };
+
+        const response = await fetch('/api/frete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
         const data = await response.json();
 
-        if (data.erro) {
-            resultDiv.innerHTML = '<p style="color:red">CEP não encontrado.</p>';
-        } else {
-            resultDiv.innerHTML = `
-                <p><strong>Cidade:</strong> ${data.localidade} - ${data.uf}</p>
-                <p><strong>Rua:</strong> ${data.logradouro}</p>
-                <p style="font-size:0.8rem; color:green; margin-top:5px">Frete Grátis para esta região!</p>
-            `;
+        if (!response.ok) {
+            console.error("Erro repassado pela API:", data);
+            throw new Error('A API recusou o cálculo. Verifique os dados digitados.');
         }
+
+        // 3. Renderizamos o resultado
+        const arrayServicos = Array.isArray(data) ? data : (data.services || [data]); // Ajuste de segurança caso a API mande um objeto único
+        
+        resultDiv.innerHTML = arrayServicos.map(opcao => {
+            // Pega os dados conforme a Super Frete devolve na documentação
+            const nome = opcao.name || opcao.service_name || 'Frete';
+            const prazo = opcao.delivery_time || opcao.custom_delivery_time || '?';
+            const preco = opcao.price || opcao.custom_price || '0.00';
+            
+            return `
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid #ccc; padding:5px 0;">
+                    <span><strong>${nome}</strong> (${prazo} dias)</span>
+                    <span style="font-weight:bold; color:var(--primary-color);">R$ ${preco}</span>
+                </div>
+            `;
+        }).join('');
+
     } catch (error) {
         console.error(error);
-        resultDiv.innerHTML = '<p style="color:red">Erro ao buscar CEP.</p>';
+        resultDiv.innerHTML = '<p style="color:red; text-align:center;">Erro ao conectar com a Super Frete.</p>';
     }
 });
 
