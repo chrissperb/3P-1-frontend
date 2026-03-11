@@ -41,7 +41,6 @@ async function carregarCatalogo() {
     }
 }
 
-// 2. FUNÇÕES DE RENDERIZAÇÃO
 const formatCurrency = (value) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 };
@@ -174,7 +173,6 @@ btnCep.addEventListener('click', async () => {
     const largura = parseInt(larguraInput.value) || 0;
     const comprimento = parseInt(comprimentoInput.value) || 0;
 
-    // Se a vendedora não preencher as medidas, avisa que é necessário
     if (peso === 0 || altura === 0) {
         alert('Para calcular o frete, preencha o peso e as medidas do pacote.');
         return;
@@ -212,11 +210,9 @@ btnCep.addEventListener('click', async () => {
             throw new Error('A API recusou o cálculo. Verifique os dados digitados.');
         }
 
-        // 3. Renderizamos o resultado
-        const arrayServicos = Array.isArray(data) ? data : (data.services || [data]); // Ajuste de segurança caso a API mande um objeto único
+        const arrayServicos = Array.isArray(data) ? data : (data.services || [data]); 
         
         resultDiv.innerHTML = arrayServicos.map(opcao => {
-            // Pega os dados conforme a Super Frete devolve na documentação
             const nome = opcao.name || opcao.service_name || 'Frete';
             const prazo = opcao.delivery_time || opcao.custom_delivery_time || '?';
             const preco = opcao.price || opcao.custom_price || '0.00';
@@ -232,6 +228,80 @@ btnCep.addEventListener('click', async () => {
     } catch (error) {
         console.error(error);
         resultDiv.innerHTML = '<p style="color:red; text-align:center;">Erro ao conectar com a Super Frete.</p>';
+    }
+});
+
+// ==========================================
+// 5. FINALIZAR VENDA (Checkout PDV)
+// ==========================================
+const btnFinalize = document.getElementById('btn-finalize');
+
+btnFinalize.addEventListener('click', async () => {
+    if (cart.length === 0) {
+        alert('O carrinho está vazio! Adicione roupinhas antes de finalizar.');
+        return;
+    }
+
+    const itensAgrupados = [];
+    cart.forEach(itemCarrinho => {
+        const itemExistente = itensAgrupados.find(i => i.produtoId === itemCarrinho.id);
+        
+        if (itemExistente) {
+            itemExistente.quantidade += 1; 
+        } else {
+            itensAgrupados.push({
+                produtoId: itemCarrinho.id,
+                quantidade: 1 
+            });
+        }
+    });
+
+    const cepInformado = document.getElementById('cep-input').value.replace(/\D/g, '');
+    
+    const payloadVenda = {
+        cliente: "Cliente PDV (Balcão)", 
+        endereco: {
+            cep: cepInformado.length === 8 ? cepInformado : "00000000",
+            logradouro: cepInformado.length === 8 ? "Endereço a combinar" : "Retirada na Loja",
+            bairro: "-",
+            cidade: "Sua Cidade",
+            estado: "SC"
+        },
+        itens: itensAgrupados 
+    };
+
+    // 4. Enviar para o MongoDB
+    try {
+        btnFinalize.textContent = "Processando... 🦋";
+        btnFinalize.disabled = true; 
+
+        const resposta = await fetch('/api/pedidos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payloadVenda)
+        });
+
+        const resultado = await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(resultado.erro || 'Erro desconhecido ao finalizar.');
+        }
+
+        alert(resultado.mensagem);
+        
+        cart = []; 
+        renderCart(); 
+        document.getElementById('cep-input').value = '';
+        document.getElementById('address-result').classList.add('hidden');
+        document.getElementById('peso-input').value = '';
+        
+        carregarCatalogo(); 
+
+    } catch (error) {
+        alert(`❌ Não foi possível finalizar: ${error.message}`);
+    } finally {
+        btnFinalize.textContent = "Finalizar Venda";
+        btnFinalize.disabled = false;
     }
 });
 

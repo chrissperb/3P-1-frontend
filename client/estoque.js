@@ -6,7 +6,7 @@
 // ==========================================
 // 1. ESTADO E SELETORES DOM
 // ==========================================
-let modoEdicao = false; // Controla se estamos criando ou atualizando um produto
+let modoEdicao = false; 
 
 const formProduto = document.getElementById('form-produto');
 const btnCancelar = document.getElementById('btn-cancelar');
@@ -32,7 +32,7 @@ async function carregarEstoque() {
         const resposta = await fetch('/api/produtos');
         const produtos = await resposta.json();
 
-        estoqueTbody.innerHTML = ''; // Limpa a tabela
+        estoqueTbody.innerHTML = ''; 
 
         if (produtos.length === 0) {
             estoqueTbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum produto cadastrado.</td></tr>';
@@ -43,7 +43,6 @@ async function carregarEstoque() {
             const tr = document.createElement('tr');
             tr.style.borderBottom = '1px solid #eee';
             
-            // Formatando os valores para exibição
             const precoExibicao = (produto.precoVenda || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             const tamanhosTexto = produto.tamanhos ? produto.tamanhos.join(', ') : 'U';
 
@@ -74,14 +73,12 @@ async function carregarEstoque() {
 // 3. SALVAR PRODUTO (CREATE / UPDATE)
 // ==========================================
 formProduto.addEventListener('submit', async (e) => {
-    e.preventDefault(); // Evita que a página recarregue
+    e.preventDefault(); 
 
-    // Coleta os dados dos inputs
     const dadosProduto = {
         id: parseInt(inputId.value),
         nome: inputNome.value.trim(),
         categoria: inputCategoria.value.trim().toLowerCase(),
-        // Transforma "P, M, G" em um array ["P", "M", "G"]
         tamanhos: inputTamanhos.value.split(',').map(t => t.trim().toUpperCase()),
         preco: parseFloat(inputPreco.value),
         precoVenda: parseFloat(inputPrecoVenda.value),
@@ -90,11 +87,11 @@ formProduto.addEventListener('submit', async (e) => {
 
     try {
         let url = '/api/produtos';
-        let metodo = 'POST'; // Padrão é criar (CREATE)
+        let metodo = 'POST'; 
 
         if (modoEdicao) {
             url = `/api/produtos/${dadosProduto.id}`;
-            metodo = 'PUT'; // Se for edição, mudamos para atualizar (UPDATE)
+            metodo = 'PUT'; 
         }
 
         const resposta = await fetch(url, {
@@ -109,9 +106,9 @@ formProduto.addEventListener('submit', async (e) => {
             throw new Error(resultado.erro || 'Falha ao salvar produto.');
         }
 
-        alert(resultado.mensagem); // Avisa o usuário que deu certo
+        alert(resultado.mensagem); 
         limparFormulario();
-        carregarEstoque(); // Atualiza a tabela com o novo dado
+        carregarEstoque(); 
 
     } catch (error) {
         alert(`Erro: ${error.message}`);
@@ -126,11 +123,9 @@ window.prepararEdicao = (produto) => {
     formTitle.innerText = `Editando Produto: ${produto.nome}`;
     btnCancelar.style.display = 'block';
     
-    // Trava o ID para o usuário não mudar a chave primária sem querer
     inputId.readOnly = true; 
     inputId.style.backgroundColor = '#eee';
 
-    // Preenche os inputs
     inputId.value = produto.id;
     inputNome.value = produto.nome;
     inputCategoria.value = produto.categoria;
@@ -144,12 +139,11 @@ window.prepararEdicao = (produto) => {
 // 5. CANCELAR EDIÇÃO E LIMPAR FORMULÁRIO
 // ==========================================
 const limparFormulario = () => {
-    formProduto.reset(); // Limpa os inputs
+    formProduto.reset(); 
     modoEdicao = false;
     formTitle.innerText = 'Cadastrar Novo Produto';
     btnCancelar.style.display = 'none';
     
-    // Destrava o ID
     inputId.readOnly = false;
     inputId.style.backgroundColor = '';
 };
@@ -161,7 +155,7 @@ btnCancelar.addEventListener('click', limparFormulario);
 // ==========================================
 window.deletarProduto = async (id) => {
     if (!confirm(`Tem certeza que deseja remover o produto ID ${id} do estoque? Essa ação não pode ser desfeita.`)) {
-        return; // Se o usuário clicar em Cancelar, aborta
+        return; 
     }
 
     try {
@@ -174,7 +168,7 @@ window.deletarProduto = async (id) => {
         if (!resposta.ok) throw new Error(resultado.erro);
 
         alert(resultado.mensagem);
-        carregarEstoque(); // Atualiza a tabela
+        carregarEstoque(); 
 
     } catch (error) {
         alert(`Erro: ${error.message}`);
