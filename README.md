@@ -108,6 +108,103 @@ node server.js
 
 - Interface Responsiva (Mobile-First) via CSS Grid e Flexbox.
 
+## 📡 Documentação da API (Endpoints)
+
+A aplicação disponibiliza uma API RESTful completa para comunicação entre o Frontend (PDV/Backoffice) e o Banco de Dados. Abaixo estão os principais endpoints disponíveis:
+
+### 📦 Produtos (Estoque)
+
+| Método | Rota | Descrição |
+| :--- | :--- | :--- |
+| `GET` | `/api/produtos` | Retorna a lista completa de produtos cadastrados. |
+| `GET` | `/api/produtos/:id` | Retorna os detalhes de um produto específico pelo ID numérico. |
+| `POST` | `/api/produtos` | Cadastra um novo produto no estoque. |
+| `PUT` | `/api/produtos/:id` | Atualiza os dados de um produto existente. |
+| `DELETE` | `/api/produtos/:id` | Remove um produto do banco de dados. |
+
+**Exemplo de Requisição (POST `/api/produtos`):**
+```json
+{
+  "id": 101,
+  "nome": "Vestido Floral Borboleta",
+  "categoria": "vestido",
+  "tamanhos": ["P", "M", "G"],
+  "preco": 35.00,
+  "precoVenda": 65.90,
+  "quantidade": 10
+}
+```
+
+### 🛒 Pedidos (Checkout / Vendas)
+
+| Método | Rota | Descrição |
+| :--- | :--- | :--- |
+| `GET` | `/api/pedidos` | Retorna o histórico de todas as vendas finalizadas.|
+| `POST` | `/api/pedidos` | Finaliza uma venda, salva o histórico e desconta automaticamente a quantidade do estoque. |
+
+**Exemplo de Requisição (POST `/api/pedidos`):**
+```json
+{
+  "cliente": "Cliente PDV (Balcão)",
+  "endereco": {
+    "cep": "88495000",
+    "logradouro": "Retirada na Loja",
+    "bairro": "-",
+    "cidade": "Sua Cidade",
+    "estado": "SC"
+  },
+  "itens": [
+    {
+      "produtoId": 101,
+      "quantidade": 2
+    }
+  ]
+}
+```
+
+### 🚚 Logística (Super Frete)
+
+| Método | Rota | Descrição |
+| :--- | :--- | :--- |
+| `POST` | `/api/frete` | Atua como um Proxy para calcular fretes reais nos Correios, repassando credenciais de forma segura. |
+
+**Exemplo de Requisição (POST `/api/frete`):**
+```json
+{
+  "from": { "postal_code": "88495000" },
+  "to": { "postal_code": "01153000" },
+  "services": "1,2,17",
+  "options": {
+    "own_hand": false,
+    "receipt": false,
+    "insurance_value": 0,
+    "use_insurance_value": false
+  },
+  "package": {
+    "weight": 0.3,
+    "height": 4,
+    "width": 11,
+    "length": 16
+  }
+}
+```
+
+**Exemplo de Resposta:**
+```json
+[
+  {
+    "name": "PAC",
+    "price": "22.50",
+    "delivery_time": 6
+  },
+  {
+    "name": "Sedex",
+    "price": "45.90",
+    "delivery_time": 2
+  }
+]
+```
+
 ## 🛠️ Tecnologias Utilizadas
 ### Backend:
 
