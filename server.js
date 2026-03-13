@@ -21,8 +21,8 @@ app.use(express.json());
 
 // 2. Conexão com o MongoDB
 mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('✅ Conectado ao MongoDB com sucesso!'))
-    .catch((erro) => console.error('❌ Erro ao conectar no MongoDB:', erro.message));
+    .then(() => console.log('Conectado ao MongoDB com sucesso!'))
+    .catch((erro) => console.error('Erro ao conectar no MongoDB:', erro.message));
 
 // 3. Sincronização com o Frontend
 const pastaClient = path.join(__dirname, 'client');

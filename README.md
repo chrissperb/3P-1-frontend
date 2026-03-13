@@ -78,9 +78,9 @@ node server.js
 ## ✨ Funcionalidades Implementadas
 **1. Gerenciamento de Estoque (Backoffice)**
 
-**- CRUD Completo:** Criação, leitura, atualização e exclusão de produtos no MongoDB.
+- CRUD Completo: Criação, leitura, atualização e exclusão de produtos no MongoDB.
 
-**- Tabela Dinâmica:** Visualização em tempo real da quantidade de peças disponíveis e preços.
+- Tabela Dinâmica: Visualização em tempo real da quantidade de peças disponíveis e preços.
 
 **2. Catálogo de Produtos e PDV**
 
