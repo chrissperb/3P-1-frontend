@@ -1,10 +1,24 @@
+// ==========================================
+//        VERIFICAÇÃO DE SEGURANÇA
+// ==========================================
+const token = localStorage.getItem('token');
+
+if (!token) {
+    window.location.href = '/login.html';
+}
+
+const headersComAutenticacao = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}` 
+};
+
 /**
  * Borbolêlalá - Sistema de Gestão de Vendas (Frontend MVP)
  * @description Lógica de catálogo, carrinho e API externa.
  */
 
 // Estado da Aplicação
-let products = []
+let products = [];
 let cart = [];
 let discountPercent = 0;
 
@@ -17,54 +31,21 @@ const discountInput = document.getElementById('discount-input');
 const btnCep = document.getElementById('btn-cep');
 const cepInput = document.getElementById('cep-input');
 
-async function carregarCatalogo() {
-    productGrid.innerHTML = '<p style="text-align:center;">Carregando roupinhas... 🦋</p>';
-    
-    try {
-        const resposta = await fetch('/api/produtos');
-        const dadosDoBanco = await resposta.json();
-
-        products = dadosDoBanco
-            .filter(p => p.quantidade > 0)
-            .map(p => ({
-                id: p.id,
-                name: p.nome,
-                price: p.precoVenda || p.preco || 0, 
-                category: p.categoria ? p.categoria.toLowerCase() : 'outros',
-                sizes: p.tamanhos && p.tamanhos.length > 0 ? p.tamanhos : ['U']
-            }));
-
-        renderFilters();
-        renderCatalog();
-
-    } catch (error) {
-        console.error("Erro ao carregar da API:", error);
-        productGrid.innerHTML = '<p style="color:red; text-align:center;">Erro ao carregar o catálogo.</p>';
-    }
-}
+// ==========================================
+// 1. CARREGAMENTO E RENDERIZAÇÃO
+// ==========================================
 
 const formatCurrency = (value) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 };
 
-const renderCatalog = (filter = 'all') => {
-    productGrid.innerHTML = '';
-    
-    const filtered = filter === 'all' 
-        ? products 
-        : products.filter(p => p.category === filter);
+const updateTotals = () => {
+    const subtotal = cart.reduce((acc, item) => acc + item.price, 0);
+    const discountValue = subtotal * (discountPercent / 100);
+    const total = subtotal - discountValue;
 
-    filtered.forEach(product => {
-        const card = document.createElement('div');
-        card.className = 'product-card';
-        card.innerHTML = `
-            <h3>${product.name}</h3>
-            <p style="font-size:0.8rem; color:#888">Tamanhos: ${product.sizes.join(', ')}</p>
-            <p class="price">${formatCurrency(product.price)}</p>
-            <button class="btn-add" onclick="addToCart(${product.id})">Adicionar</button>
-        `;
-        productGrid.appendChild(card);
-    });
+    subtotalDisplay.innerText = formatCurrency(subtotal);
+    totalDisplay.innerText = formatCurrency(total);
 };
 
 const renderCart = () => {
@@ -89,38 +70,6 @@ const renderCart = () => {
     updateTotals();
 };
 
-// 3. LÓGICA DE NEGÓCIO (Calculadora)
-window.addToCart = (id) => {
-    const product = products.find(p => p.id === id);
-    if (product) {
-        cart.push({ ...product }); 
-        renderCart();
-    }
-};
-
-window.removeFromCart = (index) => {
-    cart.splice(index, 1);
-    renderCart();
-};
-
-const updateTotals = () => {
-    const subtotal = cart.reduce((acc, item) => acc + item.price, 0);
-    const discountValue = subtotal * (discountPercent / 100);
-    const total = subtotal - discountValue;
-
-    subtotalDisplay.innerText = formatCurrency(subtotal);
-    totalDisplay.innerText = formatCurrency(total);
-};
-
-// Event Listener para Desconto
-discountInput.addEventListener('input', (e) => {
-    let val = parseFloat(e.target.value);
-    if (isNaN(val)) val = 0;
-    discountPercent = val;
-    updateTotals();
-});
-
-// Filtros de Categoria Dinâmicos
 const renderFilters = () => {
     const filtersContainer = document.getElementById('dynamic-filters');
     filtersContainer.innerHTML = ''; 
@@ -151,8 +100,92 @@ const renderFilters = () => {
     });
 };
 
+const renderCatalog = (filter = 'all') => {
+    productGrid.innerHTML = '';
+    
+    const filtered = filter === 'all' 
+        ? products 
+        : products.filter(p => p.category === filter);
+
+    filtered.forEach(product => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+            <h3>${product.name}</h3>
+            <p style="font-size:0.8rem; color:#888">Tamanhos: ${product.sizes.join(', ')}</p>
+            <p class="price">${formatCurrency(product.price)}</p>
+            <button class="btn-add" onclick="addToCart(${product.id})">Adicionar</button>
+        `;
+        productGrid.appendChild(card);
+    });
+};
+
+// BUSCA OS PRODUTOS NO BACKEND
+async function carregarCatalogo() {
+    productGrid.innerHTML = '<p style="text-align:center;">Carregando roupinhas... 🦋</p>';
+    
+    try {
+        const resposta = await fetch('/api/produtos', {
+            method: 'GET',
+            headers: headersComAutenticacao 
+        });
+
+        if (!resposta.ok) {
+            if (resposta.status === 401) {
+                localStorage.removeItem('token');
+                window.location.href = '/login.html';
+                return;
+            }
+            throw new Error('Falha ao buscar produtos');
+        }
+
+        const dadosDoBanco = await resposta.json();
+
+        products = dadosDoBanco
+            .filter(p => p.quantidade > 0)
+            .map(p => ({
+                id: p.id,
+                name: p.nome,
+                price: p.precoVenda || p.preco || 0, 
+                category: p.categoria ? p.categoria.toLowerCase() : 'outros',
+                sizes: p.tamanhos && p.tamanhos.length > 0 ? p.tamanhos : ['U']
+            }));
+
+        renderFilters();
+        renderCatalog();
+
+    } catch (error) {
+        console.error("Erro ao carregar da API:", error);
+        productGrid.innerHTML = '<p style="color:red; text-align:center;">Erro ao carregar o catálogo.</p>';
+    }
+}
+
 // ==========================================
-// 4. CONSUMO DE API (Cálculo de Frete)
+// 2. LÓGICA DE CARRINHO E DESCONTO
+// ==========================================
+
+window.addToCart = (id) => {
+    const product = products.find(p => p.id === id);
+    if (product) {
+        cart.push({ ...product }); 
+        renderCart();
+    }
+};
+
+window.removeFromCart = (index) => {
+    cart.splice(index, 1);
+    renderCart();
+};
+
+discountInput.addEventListener('input', (e) => {
+    let val = parseFloat(e.target.value);
+    if (isNaN(val)) val = 0;
+    discountPercent = val;
+    updateTotals();
+});
+
+// ==========================================
+// 3. CONSUMO DE API EXTERNA (Cálculo de Frete)
 // ==========================================
 const pesoInput = document.getElementById('peso-input');
 const alturaInput = document.getElementById('altura-input');
@@ -163,13 +196,11 @@ btnCep.addEventListener('click', async () => {
     const cepDestino = cepInput.value.replace(/\D/g, '');
     const resultDiv = document.getElementById('address-result');
     
-    // Validação do CEP de destino
     if (cepDestino.length !== 8) {
         alert('CEP de destino inválido. Digite 8 números.');
         return;
     }
 
-    // Coleta as dimensões do pacote
     const peso = parseFloat(pesoInput.value) || 0;
     const altura = parseInt(alturaInput.value) || 0;
     const largura = parseInt(larguraInput.value) || 0;
@@ -191,17 +222,12 @@ btnCep.addEventListener('click', async () => {
                 insurance_value: 0,
                 use_insurance_value: false
             },
-            package: { 
-                weight: peso, 
-                height: altura, 
-                width: largura, 
-                length: comprimento 
-            }
+            package: { weight: peso, height: altura, width: largura, length: comprimento }
         };
 
         const response = await fetch('/api/frete', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headersComAutenticacao,
             body: JSON.stringify(payload)
         });
 
@@ -234,7 +260,7 @@ btnCep.addEventListener('click', async () => {
 });
 
 // ==========================================
-// 5. FINALIZAR VENDA (Checkout PDV)
+// 4. FINALIZAR VENDA (Checkout PDV)
 // ==========================================
 const btnFinalize = document.getElementById('btn-finalize');
 
@@ -251,10 +277,7 @@ btnFinalize.addEventListener('click', async () => {
         if (itemExistente) {
             itemExistente.quantidade += 1; 
         } else {
-            itensAgrupados.push({
-                produtoId: itemCarrinho.id,
-                quantidade: 1 
-            });
+            itensAgrupados.push({ produtoId: itemCarrinho.id, quantidade: 1 });
         }
     });
 
@@ -272,14 +295,13 @@ btnFinalize.addEventListener('click', async () => {
         itens: itensAgrupados 
     };
 
-    // 4. Enviar para o MongoDB
     try {
         btnFinalize.textContent = "Processando... 🦋";
         btnFinalize.disabled = true; 
 
         const resposta = await fetch('/api/pedidos', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headersComAutenticacao, 
             body: JSON.stringify(payloadVenda)
         });
 
@@ -300,15 +322,42 @@ btnFinalize.addEventListener('click', async () => {
         carregarCatalogo(); 
 
     } catch (error) {
-        alert(`❌ Não foi possível finalizar: ${error.message}`);
+        alert(`Não foi possível finalizar: ${error.message}`);
     } finally {
         btnFinalize.textContent = "Finalizar Venda";
         btnFinalize.disabled = false;
     }
 });
 
+// ==========================================
+//                  LOGOUT
+// ==========================================
+const btnLogout = document.getElementById('btn-logout');
+
+if (btnLogout) {
+    btnLogout.addEventListener('click', () => {
+        if (confirm('Tem certeza que deseja encerrar a sessão?')) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('usuario');
+            
+            window.location.href = '/login.html';
+        }
+    });
+}
+
+// ==========================================
+//          SAUDAÇÃO DO USUÁRIO LOGADO
+// ==========================================
+const userGreeting = document.getElementById('user-greeting');
+const usuarioLogadoString = localStorage.getItem('usuario');
+
+if (userGreeting && usuarioLogadoString) {
+    const usuarioLogado = JSON.parse(usuarioLogadoString);
+    const primeiroNome = usuarioLogado.nome.split(' ')[0];
+    userGreeting.textContent = `Olá, ${primeiroNome} 👋`;
+}
+
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
     carregarCatalogo();
-    renderCatalog();
 });

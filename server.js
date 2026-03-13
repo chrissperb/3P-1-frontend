@@ -11,6 +11,7 @@ const path = require('path');
 const produtoRoutes = require('./routes/produtoRoutes');
 const pedidoRoutes = require('./routes/pedidoRoutes');
 const freteRoutes = require('./routes/freteRoutes');
+const usuarioRoutes = require('./routes/usuarioRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,6 +33,7 @@ app.use(express.static(pastaClient));
 app.use('/api', produtoRoutes);
 app.use('/api', pedidoRoutes);
 app.use('/api', freteRoutes);
+app.use('/api', usuarioRoutes);
 
 // 5. Rota de fallback (Sempre no final)
 app.get(/.*/, (req, res) => {

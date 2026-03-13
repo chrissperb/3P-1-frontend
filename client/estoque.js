@@ -1,3 +1,17 @@
+// ==========================================
+//         VERIFICAÇÃO DE SEGURANÇA
+// ==========================================
+const token = localStorage.getItem('token');
+
+if (!token) {
+    window.location.href = '/login.html';
+}
+
+const headersComAutenticacao = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}` 
+};
+
 /**
  * Borbolêlalá - Controle de Estoque (Backoffice)
  * @description Lógica de CRUD conectada à API do Backend.
@@ -29,12 +43,26 @@ async function carregarEstoque() {
     estoqueTbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Carregando estoque... 🦋</td></tr>';
     
     try {
-        const resposta = await fetch('/api/produtos');
+        const resposta = await fetch('/api/produtos', {
+            method: 'GET',
+            headers: headersComAutenticacao 
+        });
+
+        if (resposta.status === 401 || resposta.status === 403) {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+            return;
+        }
+
+        if (!resposta.ok) {
+            throw new Error('Falha ao buscar produtos');
+        }
+
         const produtos = await resposta.json();
 
         estoqueTbody.innerHTML = ''; 
 
-        if (produtos.length === 0) {
+        if (!Array.isArray(produtos) || produtos.length === 0) {
             estoqueTbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum produto cadastrado.</td></tr>';
             return;
         }
@@ -96,9 +124,16 @@ formProduto.addEventListener('submit', async (e) => {
 
         const resposta = await fetch(url, {
             method: metodo,
-            headers: { 'Content-Type': 'application/json' },
+            headers: headersComAutenticacao, 
             body: JSON.stringify(dadosProduto)
         });
+
+        if (resposta.status === 401 || resposta.status === 403) {
+            alert('Sua sessão expirou ou você não tem permissão de Gerente para alterar produtos.');
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+            return;
+        }
 
         const resultado = await resposta.json();
 
@@ -160,8 +195,16 @@ window.deletarProduto = async (id) => {
 
     try {
         const resposta = await fetch(`/api/produtos/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: headersComAutenticacao
         });
+
+        if (resposta.status === 401 || resposta.status === 403) {
+            alert('Sua sessão expirou ou você não tem permissão para deletar produtos.');
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+            return;
+        }
 
         const resultado = await resposta.json();
 
@@ -174,5 +217,33 @@ window.deletarProduto = async (id) => {
         alert(`Erro: ${error.message}`);
     }
 };
+
+// ==========================================
+//                  LOGOUT
+// ==========================================
+const btnLogout = document.getElementById('btn-logout');
+
+if (btnLogout) {
+    btnLogout.addEventListener('click', () => {
+        if (confirm('Tem certeza que deseja encerrar a sessão?')) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('usuario');
+            
+            window.location.href = '/login.html';
+        }
+    });
+}
+
+// ==========================================
+//          SAUDAÇÃO DO USUÁRIO LOGADO
+// ==========================================
+const userGreeting = document.getElementById('user-greeting');
+const usuarioLogadoString = localStorage.getItem('usuario');
+
+if (userGreeting && usuarioLogadoString) {
+    const usuarioLogado = JSON.parse(usuarioLogadoString);
+    const primeiroNome = usuarioLogado.nome.split(' ')[0];
+    userGreeting.textContent = `Olá, ${primeiroNome} 👋`;
+}
 
 document.addEventListener('DOMContentLoaded', carregarEstoque);
