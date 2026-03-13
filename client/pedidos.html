@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Pedidos - Borbolêlalá</title>
+    <link rel="stylesheet" href="./styles/style.css">
+    <style>
+        .pedidos-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .nav-links a { margin-right: 15px; text-decoration: none; color: var(--primary-color); font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 1px 5px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: var(--primary-color); color: white; }
+        .status-select { padding: 5px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold; }
+        .btn-delete { background-color: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .btn-delete:hover { background-color: #c0392b; }
+    </style>
+</head>
+<body>
+
+    <div class="pedidos-container">
+        <div class="header">
+            <div>
+                <h1>🦋 Gestão de Pedidos</h1>
+                <div class="nav-links">
+                    <a href="/index.html">⬅️ Voltar ao PDV</a>
+                    <a href="/estoque.html">📦 Ir para Estoque</a>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span id="user-greeting" style="font-weight: bold; color: var(--primary-color);"></span>
+                <button id="btn-logout" style="background-color: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                    Sair 🚪
+                </button>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Data / ID</th>
+                    <th>Cliente / Endereço</th>
+                    <th>Itens Comprados</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="pedidos-tbody">
+                </tbody>
+        </table>
+    </div>
+
+    <script src="pedidos.js"></script>
+</body>
+</html>

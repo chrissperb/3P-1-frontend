@@ -38,6 +38,35 @@ class PedidoService {
     static async listarTodos() {
         return await Pedido.find().sort({ createdAt: -1 });
     }
+
+    static async atualizarStatus(pedidoId, novoStatus) {
+        const pedidoAtualizado = await Pedido.findByIdAndUpdate(
+            pedidoId, 
+            { status: novoStatus }, 
+            { new: true }
+        );
+        
+        if (!pedidoAtualizado) throw new Error('Pedido não encontrado.');
+        return pedidoAtualizado;
+    }
+
+    static async deletarPedido(pedidoId) {
+        const pedido = await Pedido.findById(pedidoId);
+        if (!pedido) throw new Error('Pedido não encontrado para exclusão.');
+
+        for (let item of pedido.itens) {
+            const produtoDb = await Produto.findOne({ id: item.produtoId });
+            if (produtoDb) {
+                produtoDb.quantidade += item.quantidade; // Soma de volta
+                await produtoDb.save();
+            }
+        }
+
+        await Pedido.findByIdAndDelete(pedidoId);
+        
+        return { mensagem: 'Pedido excluído com sucesso e estoque restaurado!' };
+    }
 }
+
 
 module.exports = PedidoService;

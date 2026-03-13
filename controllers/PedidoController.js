@@ -20,6 +20,28 @@ class PedidoController {
             res.status(500).json({ erro: 'Falha ao buscar o histórico de vendas.' });
         }
     }
+
+    static async atualizarStatus(req, res) {
+        try {
+            const { id } = req.params;
+            const { status } = req.body; 
+            
+            const pedidoAtualizado = await PedidoService.atualizarStatus(id, status);
+            res.status(200).json({ mensagem: 'Status atualizado!', pedido: pedidoAtualizado });
+        } catch (error) {
+            res.status(404).json({ erro: error.message });
+        }
+    }
+
+    static async deletarPedido(req, res) {
+        try {
+            const { id } = req.params;
+            const resultado = await PedidoService.deletarPedido(id);
+            res.status(200).json(resultado);
+        } catch (error) {
+            res.status(404).json({ erro: error.message });
+        }
+    }
 }
 
 module.exports = PedidoController;
