@@ -24,13 +24,15 @@ async function carregarCatalogo() {
         const resposta = await fetch('/api/produtos');
         const dadosDoBanco = await resposta.json();
 
-        products = dadosDoBanco.map(p => ({
-            id: p.id,
-            name: p.nome,
-            price: p.precoVenda || p.preco || 0, 
-            category: p.categoria ? p.categoria.toLowerCase() : 'outros',
-            sizes: ['U']
-        }));
+        products = dadosDoBanco
+            .filter(p => p.quantidade > 0)
+            .map(p => ({
+                id: p.id,
+                name: p.nome,
+                price: p.precoVenda || p.preco || 0, 
+                category: p.categoria ? p.categoria.toLowerCase() : 'outros',
+                sizes: p.tamanhos && p.tamanhos.length > 0 ? p.tamanhos : ['U'] // Puxa os tamanhos reais do banco!
+            }));
 
         renderFilters();
         renderCatalog();
