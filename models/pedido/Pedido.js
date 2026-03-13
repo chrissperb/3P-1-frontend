@@ -57,5 +57,4 @@ const PedidoSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// O Mongoose criará uma coleção chamada 'pedidos' automaticamente
 module.exports = mongoose.model('Pedido', PedidoSchema);

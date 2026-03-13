@@ -31,7 +31,7 @@ async function carregarCatalogo() {
                 name: p.nome,
                 price: p.precoVenda || p.preco || 0, 
                 category: p.categoria ? p.categoria.toLowerCase() : 'outros',
-                sizes: p.tamanhos && p.tamanhos.length > 0 ? p.tamanhos : ['U'] // Puxa os tamanhos reais do banco!
+                sizes: p.tamanhos && p.tamanhos.length > 0 ? p.tamanhos : ['U']
             }));
 
         renderFilters();

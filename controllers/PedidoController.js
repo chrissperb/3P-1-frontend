@@ -5,7 +5,7 @@ class PedidoController {
     static async criarPedido(req, res) {
         try {
             const pedidoSalvo = await PedidoService.processarCheckout(req.body);
-            res.status(201).json({ mensagem: 'Venda finalizada com sucesso! 🦋', pedido: pedidoSalvo });
+            res.status(201).json({ mensagem: 'Venda finalizada com sucesso!', pedido: pedidoSalvo });
         } catch (error) {
             res.status(400).json({ erro: error.message });
         }

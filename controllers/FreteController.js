@@ -13,7 +13,7 @@ class FreteController {
                 return res.status(error.status).json(error.data);
             }
             
-            console.error("❌ ERRO NO FRETE CONTROLLER:", error.message);
+            console.error("ERRO NO FRETE CONTROLLER:", error.message);
             res.status(500).json({ erro: error.message });
         }
     }
