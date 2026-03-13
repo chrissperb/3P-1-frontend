@@ -1,36 +1,22 @@
-const axios = require('axios');
+const FreteService = require('../services/FreteService');
 
 class FreteController {
     
     static async calcular(req, res) {
         try {
-            const resposta = await axios.post(
-                'https://api.superfrete.com/api/v0/calculator', 
-                req.body,
-                {
-                    headers: {
-                    accept: 'application/json',
-                    'User-Agent': 'Cintia Smaniotto Sperb (cintiasmaniotto@icloud.com)',
-                    'content-type': 'application/json',
-                    Authorization: 'Bearer ${process.env.SUPER_FRETE_TOKEN}'
-                    }
-                }
-            );
-
-            res.status(200).json(resposta.data);
+            const dadosFrete = await FreteService.calcularFrete(req.body);
+            
+            res.status(200).json(dadosFrete);
 
         } catch (error) {
-            if (error.response) {
-                console.error("❌ A SUPER FRETE RECUSOU OS DADOS. Motivo:", error.response.data);
-                return res.status(error.response.status).json(error.response.data);
+            if (error.status) {
+                return res.status(error.status).json(error.data);
             }
             
-            console.error("❌ ERRO INTERNO NO SERVIDOR:", error.message);
-            res.status(500).json({ erro: 'Falha interna ao tentar calcular o frete.' });
+            console.error("❌ ERRO NO FRETE CONTROLLER:", error.message);
+            res.status(500).json({ erro: error.message });
         }
     }
 }
 
 module.exports = FreteController;
-
-
