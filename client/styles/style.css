@@ -31,14 +31,15 @@ body { background-color: var(--bg-color); color: var(--text-color); }
 .main-header h1 { color: var(--primary-color); font-weight: 700; }
 
 /* ==========================================
-   HEADER E NAVEGAÇÃO (SWITCH TIPO TOGGLE)
+   NOVO SWITCH DE NAVEGAÇÃO (CONTROLE SEGMENTADO)
    ========================================== */
-.mode-switch {
-    display: flex;
+.nav-switch {
+    display: inline-flex;
     background-color: #ecf0f1; /* Fundo cinza do "trilho" */
     border-radius: 30px;
     padding: 5px;
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); /* Sombra interna para dar profundidade */
+    align-items: center;
 }
 
 .switch-option {
@@ -49,13 +50,14 @@ body { background-color: var(--bg-color); color: var(--text-color); }
     border-radius: 25px;
     transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
     font-size: 0.95rem;
+    text-align: center;
 }
 
 .switch-option:hover {
     color: var(--primary-color);
 }
 
-/* O estado ativo ganha cor e levanta do trilho */
+/* A classe 'active' é a "alavanca" do switch que mostra onde estamos */
 .switch-option.active {
     background-color: #ffffff;
     color: var(--primary-color);
@@ -71,7 +73,7 @@ body { background-color: var(--bg-color); color: var(--text-color); }
 }
 
 /* ==========================================
-   LAYOUT GRID PRINCIPAL
+   LAYOUT GRID PRINCIPAL E CONTAINERS
    ========================================== */
 .container {
     display: grid;
@@ -80,6 +82,14 @@ body { background-color: var(--bg-color); color: var(--text-color); }
     padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
+}
+
+/* Container específico para a tela de pedidos (Layout Bloco) */
+.pedidos-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: block;
 }
 
 /* Desktop: Vendas (Catálogo grande, Painel menor) */
@@ -202,26 +212,32 @@ body { background-color: var(--bg-color); color: var(--text-color); }
 .estoque-form input:focus { border-color: var(--primary-color); }
 
 /* ==========================================
-   TABELA DE ESTOQUE
+   TABELAS (ESTOQUE E PEDIDOS)
    ========================================== */
 .table-responsive {
     background: var(--card-bg);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
-    overflow-x: auto; /* Permite rolagem no celular */
+    overflow-x: auto;
 }
 
-.estoque-table th { background-color: var(--bg-color); color: var(--primary-color); padding: 1rem; }
-.estoque-table td { border-bottom: 1px solid #f0f0f0; }
-.estoque-table tr:hover td { background-color: #fafafa; }
+.estoque-table, table { width: 100%; border-collapse: collapse; }
+.estoque-table th, th { background-color: var(--bg-color); color: var(--primary-color); padding: 1rem; text-align: left; }
+.estoque-table td, td { border-bottom: 1px solid #f0f0f0; padding: 1rem; }
+.estoque-table tr:hover td, tr:hover td { background-color: #fafafa; }
 
 .btn-edit, .btn-delete {
     background: none;
     border: none;
     font-size: 1.2rem;
     transition: transform 0.2s;
+    cursor: pointer;
 }
 .btn-edit:hover, .btn-delete:hover { transform: scale(1.2); }
+
+.btn-delete-solid { background-color: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.9rem; }
+.btn-delete-solid:hover { background-color: #c0392b; }
+.status-select { padding: 5px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold; }
 
 /* ==========================================
    CEP E UTILITÁRIOS

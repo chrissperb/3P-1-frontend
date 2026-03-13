@@ -21,13 +21,12 @@
 
     <div class="pedidos-container">
         <div class="header">
-            <div>
-                <h1>🦋 Gestão de Pedidos</h1>
-                <div class="nav-links">
-                    <a href="/index.html">⬅️ Voltar ao PDV</a>
-                    <a href="/estoque.html">📦 Ir para Estoque</a>
-                </div>
+            <div class="nav-switch">
+                <a href="/index.html" class="switch-option">🛒 PDV</a>
+                <a href="/estoque.html" class="switch-option">📦 Estoque</a>
+                <a href="/pedidos.html" class="switch-option active">🧾 Pedidos</a>
             </div>
+
             <div style="display: flex; align-items: center; gap: 15px;">
                 <span id="user-greeting" style="font-weight: bold; color: var(--primary-color);"></span>
                 <button id="btn-logout" style="background-color: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">
