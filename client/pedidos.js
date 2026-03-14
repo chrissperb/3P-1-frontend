@@ -84,7 +84,7 @@ async function carregarPedidos() {
                     </select>
                 </td>
                 <td>
-                    <button class="btn-delete" onclick="deletarPedido('${pedido._id}')">🗑️ Excluir</button>
+                    <button class="btn-delete-solid" onclick="deletarPedido('${pedido._id}')">🗑️ Excluir</button>
                 </td>
             `;
             pedidosTbody.appendChild(tr);

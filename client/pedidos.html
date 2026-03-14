@@ -5,50 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestão de Pedidos - Borbolêlalá</title>
     <link rel="stylesheet" href="./styles/style.css">
-    <style>
-        .pedidos-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .nav-links a { margin-right: 15px; text-decoration: none; color: var(--primary-color); font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 1px 5px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background-color: var(--primary-color); color: white; }
-        .status-select { padding: 5px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold; }
-        .btn-delete { background-color: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
-        .btn-delete:hover { background-color: #c0392b; }
-    </style>
 </head>
 <body>
 
-    <div class="pedidos-container">
-        <div class="header">
-            <div class="nav-switch">
-                <a href="/index.html" class="switch-option">🛒 PDV</a>
-                <a href="/estoque.html" class="switch-option">📦 Estoque</a>
-                <a href="/pedidos.html" class="switch-option active">🧾 Pedidos</a>
-            </div>
-
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <span id="user-greeting" style="font-weight: bold; color: var(--primary-color);"></span>
-                <button id="btn-logout" style="background-color: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">
-                    Sair 🚪
-                </button>
-            </div>
+    <header class="main-header">
+        <div class="logo-area">
+            <h1>🦋 Borbolêlalá</h1>
+            <p style="color: #7f8c8d; font-size: 0.9rem; font-weight: bold; text-align: center;">Gestão de Pedidos</p>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Data / ID</th>
-                    <th>Cliente / Endereço</th>
-                    <th>Itens Comprados</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody id="pedidos-tbody">
-                </tbody>
-        </table>
+        <div class="nav-switch">
+            <a href="/index.html" class="switch-option">🛒 PDV</a>
+            <a href="/estoque.html" class="switch-option">📦 Estoque</a>
+            <a href="/pedidos.html" class="switch-option active">🧾 Pedidos</a>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span id="user-greeting" style="font-weight: bold; color: var(--primary-color);"></span>
+            <button id="btn-logout" class="btn-delete-solid" style="padding: 8px 15px; font-weight: bold;">Sair 🚪</button>
+        </div>
+    </header>
+
+    <div class="pedidos-container">
+        
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data / ID</th>
+                        <th>Cliente / Endereço</th>
+                        <th>Itens Comprados</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidos-tbody">
+                    </tbody>
+            </table>
+        </div>
+
     </div>
 
     <script src="pedidos.js"></script>
