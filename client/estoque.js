@@ -58,14 +58,17 @@ async function carregarEstoque() {
             throw new Error('Falha ao buscar produtos');
         }
 
-        const produtos = await resposta.json();
-
+const produtosDoBanco = await resposta.json();
         estoqueTbody.innerHTML = ''; 
 
-        if (!Array.isArray(produtos) || produtos.length === 0) {
+        if (!Array.isArray(produtosDoBanco) || produtosDoBanco.length === 0) {
             estoqueTbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum produto cadastrado.</td></tr>';
             return;
         }
+
+        const produtos = produtosDoBanco
+            .filter(produto => produto.id != null)
+            .sort((a, b) => a.id - b.id);
 
         produtos.forEach(produto => {
             const tr = document.createElement('tr');
