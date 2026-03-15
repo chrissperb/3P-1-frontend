@@ -6,6 +6,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsDoc = require('swagger-jsdoc');
 
 // IMPORTAÇÃO DAS ROTAS
 const produtoRoutes = require('./routes/produtoRoutes');
@@ -16,9 +18,37 @@ const usuarioRoutes = require('./routes/usuarioRoutes');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const swaggerOptions = {
+    definition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'API Borbolêlalá PDV',
+            version: '1.0.0',
+            description: 'Documentação oficial da API de Frente de Caixa e Gestão de Estoque.',
+        },
+        servers: [
+            { url: 'http://localhost:3000' }
+        ],
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT',
+                }
+            }
+        },
+        security: [{ bearerAuth: [] }]
+    },
+    apis: ['./routes/*.js'], 
+};
+
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+
 // 1. Middlewares
 app.use(cors()); 
 app.use(express.json()); 
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // 2. Conexão com o MongoDB
 mongoose.connect(process.env.MONGODB_URI)
