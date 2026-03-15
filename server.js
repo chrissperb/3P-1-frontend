@@ -42,6 +42,6 @@ app.get(/.*/, (req, res) => {
 
 // 6. Inicialização do Servidor
 app.listen(PORT, () => {
-    console.log(`🦋 Servidor Borbolêlalá rodando na porta ${PORT}`);
-    console.log(`👉 Acesse: http://localhost:${PORT}`);
+    console.log(`Servidor Borbolêlalá rodando na porta ${PORT}`);
+    console.log(`Acesse: http://localhost:${PORT}`);
 });
