@@ -1,14 +1,17 @@
 # 🦋 Borbolêlalá - Sistema de Gestão de Vendas e Estoque
 
-> **Versão:** 2.0.0 (MVP Fullstack)  
-> **Status:** Em Desenvolvimento 🚧
+> **Versão:** 3.0.0 (MVP Fullstack Seguro)  
+> **Status:** Concluído / Pronto para Deploy 🚀
 
-Bem-vindo ao repositório do **Sistema de Frente de Caixa (PDV) e Backoffice** da Borbolêlalá Moda Infantil. Este projeto evoluiu para uma aplicação Fullstack completa, permitindo o lançamento rápido de pedidos, cálculo de frete real, e gerenciamento de estoque integrado ao banco de dados, tudo com uma interface mobile-first pensada para o uso dinâmico da loja.
+Bem-vindo ao repositório do **Sistema de Frente de Caixa (PDV), Backoffice e Gestão de Pedidos** da Borbolêlalá Moda Infantil. Este projeto evoluiu para uma aplicação Fullstack completa e segura, contando com Autenticação via Tokens (JWT), controle rigoroso de rotas, reversão automática de estoque em cancelamentos e documentação interativa com Swagger (OpenAPI 3.0). Tudo com uma interface mobile-first pensada para o uso dinâmico da loja.
 
-## Ponto de Vendas (PDV)
-![Print de tela contendo a página de vendas do projeto](./views/images/image_v2_PDV.png)
-## Gerenciamento de Estoque
-![Print de tela contendo a página de estoque do projeto](./views/images/image_v2_Estoque.png)
+## Telas do Sistema
+- **PDV (Frente de Caixa):** Vendas rápidas com integração de cálculo de frete.
+![Print de tela contendo a página de vendas do projeto](./views/images/image_v3_PDV.png)
+- **Backoffice (Estoque):** CRUD de produtos protegido por autenticação.
+![Print de tela contendo a página de estoque do projeto](./views/images/image_v3_Estoque.png)
+- **Gestão de Pedidos:** Histórico de vendas, atualização de status e cancelamento com estorno inteligente de mercadorias.
+![Print de tela contendo a página de pedidos do projeto](./views/images/image_v3_Pedidos.png)
 
 ## 📂 Arquitetura e Estrutura do Projeto
 
@@ -20,27 +23,39 @@ borbolelala-pdv/
 ├── controllers/          
 │   ├── FreteController.js
 │   ├── PedidoController.js
-│   └── ProdutoController.js
+│   ├── ProdutoController.js
+│   └── UsuarioController.js
+│
+├── middlewares/
+│   └── authMiddleware.js
 │
 ├── models/               
 │   ├── pedido/Pedido.js
-│   └── produto/Produto.js
+│   ├── produto/Produto.js
+│   └── usuario/Usuario.js
+│
+├── services/
+│   └── PedidoService.js
+│   └── FreteService.js
+│   └── ProdutoService.js
+│   └── UsuarioService.js
 │
 ├── routes/               
 │   ├── freteRoutes.js
 │   ├── pedidoRoutes.js
-│   └── produtoRoutes.js
+│   ├── produtoRoutes.js
+│   └── usuarioRoutes.js
 │
 ├── client/               
-│   ├── index.html        
-│   ├── estoque.html      
-│   ├── app.js            
-│   ├── estoque.js        
-│   └── styles/
-│       └──style.css  
+│   ├── index.html (PDV)
+│   ├── estoque.html (Backoffice)
+│   ├── pedidos.html (Gestão)
+│   ├── login.html (Autenticação)
+│   ├── app.js, estoque.js, pedidos.js, login.js
+│   └── styles/style.css  
 │
-├── server.js             
-└── package.json          
+├── server.js (Configuração do Express e Swagger OpenAPI)         
+└── package.json
 ```
 ## 🚀 Como Rodar o Projeto (Ambiente de Desenvolvimento)
 Como a aplicação agora possui um Backend em Node.js e um Banco de Dados, ela deve ser executada localmente através de um servidor.
@@ -64,6 +79,7 @@ npm install
 PORT=3000
 MONGODB_URI=sua_string_de_conexao_do_mongodb_aqui
 SUPER_FRETE_TOKEN=seu_token_oficial_da_super_frete_aqui
+JWT_SECRET=sua_chave_secreta_super_segura_aquis
 ```
 **4. Inicie o servidor:**
 ```
@@ -107,6 +123,31 @@ node server.js
 - Navegação fluida entre PDV e Estoque utilizando um Toggle Switch moderno.
 
 - Interface Responsiva (Mobile-First) via CSS Grid e Flexbox.
+
+**6. Segurança e Autenticação (JWT)**
+- Sistema de Login com criptografia de senhas (Bcrypt).
+
+- Proteção de rotas da API via Bearer Token.
+
+- Controle de acesso baseado em Roles (Apenas o `admin` pode deletar produtos ou cancelar pedidos).
+
+- Logout instantâneo no Frontend (Stateless).
+
+**7. Gestão de Pedidos Inteligente**
+
+- Atualização de status do pedido em tempo real (Pago, Enviado, Entregue).
+
+- **Cancelamento Inteligente:** Ao excluir um pedido, o sistema identifica os produtos comprados e devolve as quantidades exatas para o estoque automaticamente.
+
+**8. Documentação Interativa (Swagger)**
+
+- API documentada utilizando o padrão OpenAPI 3.0.
+
+- Interface gráfica interativa acessível via `/api-docs` para testes de rotas sem necessidade de softwares externos (como Postman/Thunder Client).
+
+### 📘 Swagger UI (OpenAPI 3.0)
+Toda a documentação detalhada, schemas de requisição e testes interativos podem ser acessados com o servidor rodando através da rota:
+👉 **`http://localhost:3000/api-docs`**
 
 ## 📡 Documentação da API (Endpoints)
 
@@ -205,6 +246,20 @@ A aplicação disponibiliza uma API RESTful completa para comunicação entre o 
 ]
 ```
 
+### 🔐 Autenticação (Usuários)
+| Método | Rota | Descrição |
+| :--- | :--- | :--- |
+| `POST` | `/api/login` | Autentica o usuário e retorna o Token JWT. |
+| `POST` | `/api/usuarios` | Registra um novo usuário com senha criptografada. |
+
+### 🛒 Pedidos (Checkout / Vendas)
+| Método | Rota | Descrição | Segurança |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/pedidos` | Retorna o histórico de todas as vendas. | Bearer Token |
+| `POST` | `/api/pedidos` | Finaliza uma venda e baixa o estoque. | Bearer Token |
+| `PUT` | `/api/pedidos/:id/status` | Atualiza o status do pedido (Ex: Enviado). | Apenas Admin |
+| `DELETE`| `/api/pedidos/:id` | Cancela o pedido e **estorna os itens para o estoque**. | Apenas Admin |
+
 ## 🛠️ Tecnologias Utilizadas
 ### Backend:
 
@@ -226,20 +281,16 @@ A aplicação disponibiliza uma API RESTful completa para comunicação entre o 
 
 - API Super Frete (Cálculo logístico avançado)
 
-## 🔮 Próximos Passos (Roadmap)
-[x] Criar Backend em Node.js/Express.
-
-[x] Implementar Banco de Dados MongoDB para persistência do catálogo.
-
-[x] Criar CRUD de produtos e controle de estoque real.
-
-[x] Integrar API de fretes com cálculo de dimensões.
-
-[ ] Criar sistema de Login (Autenticação JWT) para controle de acesso de vendedores.
-
-[ ] Desenvolver Dashboard de Relatórios (Vendas do mês, produtos mais vendidos).
-
-[ ] Deploy do Monolito em nuvem (Ex: Render).
+## 🔮 Status do Roadmap
+- [x] Criar Backend em Node.js/Express.
+- [x] Implementar Banco de Dados MongoDB para persistência.
+- [x] Criar CRUD de produtos e controle de estoque real.
+- [x] Integrar API de fretes com cálculo de dimensões.
+- [x] **Criar sistema de Login (Autenticação JWT) com Bcrypt.**
+- [x] **Implementar gestão de pedidos (Update Status / Delete).**
+- [x] **Documentar a API utilizando Swagger / OpenAPI 3.0.**
+- [ ] Desenvolver Dashboard de Relatórios (Vendas do mês, produtos mais vendidos).
+- [ ] Deploy do Monolito em nuvem (Ex: Render ou Railway).
 
 ---
 Desenvolvido com 💜 pela equipe de TI da Borbolêlalá.
