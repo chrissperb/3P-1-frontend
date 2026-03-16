@@ -43,7 +43,7 @@ class PedidoService {
         const pedidoAtualizado = await Pedido.findByIdAndUpdate(
             pedidoId, 
             { status: novoStatus }, 
-            { new: true }
+            { returnDocument: 'after' }
         );
         
         if (!pedidoAtualizado) throw new Error('Pedido não encontrado.');

@@ -28,7 +28,7 @@ class ProdutoService {
         const produtoAtualizado = await Produto.findOneAndUpdate(
             { id: idBusca }, 
             dadosAtualizacao, 
-            { new: true, runValidators: true } 
+            { returnDocument: 'after', runValidators: true } 
         );
         if (!produtoAtualizado) throw new Error('Produto não encontrado para atualização.');
         return produtoAtualizado;
