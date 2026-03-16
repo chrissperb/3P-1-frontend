@@ -70,6 +70,11 @@ const produtosDoBanco = await resposta.json();
             .filter(produto => produto.id != null)
             .sort((a, b) => a.id - b.id);
 
+        if (!modoEdicao) {
+            const maiorId = produtos.length > 0 ? produtos[produtos.length - 1].id : 0;
+            document.getElementById('input-id').value = maiorId + 1;
+        }
+
         produtos.forEach(produto => {
             const tr = document.createElement('tr');
             tr.style.borderBottom = '1px solid #eee';
@@ -115,6 +120,11 @@ formProduto.addEventListener('submit', async (e) => {
         precoVenda: parseFloat(inputPrecoVenda.value),
         quantidade: parseInt(inputQuantidade.value)
     };
+
+    if (isNaN(dadosProduto.id)) {
+        alert('O ID do produto não pode ficar vazio. Recarregue a página para gerar um novo ID automaticamente.');
+        return;
+    }
 
     try {
         let url = '/api/produtos';
