@@ -9,13 +9,15 @@ if (!token) {
 
 const headersComAutenticacao = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}` 
+    'Authorization': `Bearer ${token}`
 };
 
 /**
  * Borbolêlalá - Sistema de Gestão de Vendas (Frontend MVP)
  * @description Lógica de catálogo, carrinho e API externa.
  */
+
+var nomeLoja = "Borbolêlalá";
 
 // Estado da Aplicação
 let products = [];
@@ -50,7 +52,7 @@ const updateTotals = () => {
 
 const renderCart = () => {
     cartItemsContainer.innerHTML = '';
-    
+
     if (cart.length === 0) {
         cartItemsContainer.innerHTML = '<p class="empty-msg">Nenhum item.</p>';
         updateTotals();
@@ -72,17 +74,17 @@ const renderCart = () => {
 
 const renderFilters = () => {
     const filtersContainer = document.getElementById('dynamic-filters');
-    filtersContainer.innerHTML = ''; 
+    filtersContainer.innerHTML = '';
 
     const todasCategorias = products.map(p => p.category);
     const categoriasUnicas = ['all', ...new Set(todasCategorias)];
 
     categoriasUnicas.forEach(cat => {
         const btn = document.createElement('button');
-        
+
         btn.className = `filter-btn ${cat === 'all' ? 'active' : ''}`;
         btn.dataset.cat = cat;
-        
+
         if (cat === 'all') {
             btn.textContent = 'Todos';
         } else {
@@ -92,7 +94,7 @@ const renderFilters = () => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
-            
+
             renderCatalog(e.target.dataset.cat);
         });
 
@@ -102,9 +104,9 @@ const renderFilters = () => {
 
 const renderCatalog = (filter = 'all') => {
     productGrid.innerHTML = '';
-    
-    const filtered = filter === 'all' 
-        ? products 
+
+    const filtered = filter === 'all'
+        ? products
         : products.filter(p => p.category === filter);
 
     filtered.forEach(product => {
@@ -123,11 +125,11 @@ const renderCatalog = (filter = 'all') => {
 // BUSCA OS PRODUTOS NO BACKEND
 async function carregarCatalogo() {
     productGrid.innerHTML = '<p style="text-align:center;">Carregando roupinhas... 🦋</p>';
-    
+
     try {
         const resposta = await fetch('/api/produtos', {
             method: 'GET',
-            headers: headersComAutenticacao 
+            headers: headersComAutenticacao
         });
 
         if (!resposta.ok) {
@@ -146,7 +148,7 @@ async function carregarCatalogo() {
             .map(p => ({
                 id: p.id,
                 name: p.nome,
-                price: p.precoVenda || p.preco || 0, 
+                price: p.precoVenda || p.preco || 0,
                 category: p.categoria ? p.categoria.toLowerCase() : 'outros',
                 sizes: p.tamanhos && p.tamanhos.length > 0 ? p.tamanhos : ['U']
             }));
@@ -167,7 +169,7 @@ async function carregarCatalogo() {
 window.addToCart = (id) => {
     const product = products.find(p => p.id === id);
     if (product) {
-        cart.push({ ...product }); 
+        cart.push({ ...product });
         renderCart();
     }
 };
@@ -195,7 +197,7 @@ const comprimentoInput = document.getElementById('comprimento-input');
 btnCep.addEventListener('click', async () => {
     const cepDestino = cepInput.value.replace(/\D/g, '');
     const resultDiv = document.getElementById('address-result');
-    
+
     if (cepDestino.length !== 8) {
         alert('CEP de destino inválido. Digite 8 números.');
         return;
@@ -238,13 +240,13 @@ btnCep.addEventListener('click', async () => {
             throw new Error('A API recusou o cálculo. Verifique os dados digitados.');
         }
 
-        const arrayServicos = Array.isArray(data) ? data : (data.services || [data]); 
-        
+        const arrayServicos = Array.isArray(data) ? data : (data.services || [data]);
+
         resultDiv.innerHTML = arrayServicos.map(opcao => {
             const nome = opcao.name || opcao.service_name || 'Frete';
             const prazo = opcao.delivery_time || opcao.custom_delivery_time || '?';
             const preco = opcao.price || opcao.custom_price || '0.00';
-            
+
             return `
                 <div style="display:flex; justify-content:space-between; border-bottom:1px solid #ccc; padding:5px 0;">
                     <span><strong>${nome}</strong> (${prazo} dias)</span>
@@ -273,18 +275,18 @@ btnFinalize.addEventListener('click', async () => {
     const itensAgrupados = [];
     cart.forEach(itemCarrinho => {
         const itemExistente = itensAgrupados.find(i => i.produtoId === itemCarrinho.id);
-        
+
         if (itemExistente) {
-            itemExistente.quantidade += 1; 
+            itemExistente.quantidade += 1;
         } else {
             itensAgrupados.push({ produtoId: itemCarrinho.id, quantidade: 1 });
         }
     });
 
     const cepInformado = document.getElementById('cep-input').value.replace(/\D/g, '');
-    
+
     const payloadVenda = {
-        cliente: "Cliente PDV (Balcão)", 
+        cliente: "Cliente PDV (Balcão)",
         endereco: {
             cep: cepInformado.length === 8 ? cepInformado : "00000000",
             logradouro: cepInformado.length === 8 ? "Endereço a combinar" : "Retirada na Loja",
@@ -292,16 +294,16 @@ btnFinalize.addEventListener('click', async () => {
             cidade: "Sua Cidade",
             estado: "SC"
         },
-        itens: itensAgrupados 
+        itens: itensAgrupados
     };
 
     try {
         btnFinalize.textContent = "Processando... 🦋";
-        btnFinalize.disabled = true; 
+        btnFinalize.disabled = true;
 
         const resposta = await fetch('/api/pedidos', {
             method: 'POST',
-            headers: headersComAutenticacao, 
+            headers: headersComAutenticacao,
             body: JSON.stringify(payloadVenda)
         });
 
@@ -312,14 +314,14 @@ btnFinalize.addEventListener('click', async () => {
         }
 
         alert(resultado.mensagem);
-        
-        cart = []; 
-        renderCart(); 
+
+        cart = [];
+        renderCart();
         document.getElementById('cep-input').value = '';
         document.getElementById('address-result').classList.add('hidden');
         document.getElementById('peso-input').value = '';
-        
-        carregarCatalogo(); 
+
+        carregarCatalogo();
 
     } catch (error) {
         alert(`Não foi possível finalizar: ${error.message}`);
@@ -339,7 +341,7 @@ if (btnLogout) {
         if (confirm('Tem certeza que deseja encerrar a sessão?')) {
             localStorage.removeItem('token');
             localStorage.removeItem('usuario');
-            
+
             window.location.href = '/login.html';
         }
     });
