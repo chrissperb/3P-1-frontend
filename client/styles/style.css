@@ -1,18 +1,30 @@
 :root {
     /* Cores da Identidade Borbolêlalá */
-    --primary-color: #9b59b6; /* Lilás vibrante */
-    --secondary-color: #8e44ad; /* Lilás escuro */
-    --accent-color: #1abc9c; /* Verde água (frescor) */
-    --bg-color: #fdf2f7; /* Rosa muito pálido/fundo */
+    --primary-color: #9b59b6;
+    /* Lilás vibrante */
+    --secondary-color: #8e44ad;
+    /* Lilás escuro */
+    --accent-color: #1abc9c;
+    /* Verde água (frescor) */
+    --bg-color: #fdf2f7;
+    /* Rosa muito pálido/fundo */
     --card-bg: #ffffff;
     --text-color: #34495e;
     --border-radius: 12px;
-    --shadow: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; }
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Nunito', sans-serif;
+}
 
-body { background-color: var(--bg-color); color: var(--text-color); }
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
 
 /* ==========================================
    HEADER E NAVEGAÇÃO
@@ -28,17 +40,22 @@ body { background-color: var(--bg-color); color: var(--text-color); }
     gap: 1rem;
 }
 
-.main-header h1 { color: var(--primary-color); font-weight: 700; }
+.main-header h1 {
+    color: var(--primary-color);
+    font-weight: 700;
+}
 
 /* ==========================================
    NOVO SWITCH DE NAVEGAÇÃO (CONTROLE SEGMENTADO)
    ========================================== */
 .nav-switch {
     display: inline-flex;
-    background-color: #ecf0f1; /* Fundo cinza do "trilho" */
+    background-color: #ecf0f1;
+    /* Fundo cinza do "trilho" */
     border-radius: 30px;
     padding: 5px;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); /* Sombra interna para dar profundidade */
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    /* Sombra interna para dar profundidade */
     align-items: center;
 }
 
@@ -61,7 +78,8 @@ body { background-color: var(--bg-color); color: var(--text-color); }
 .switch-option.active {
     background-color: #ffffff;
     color: var(--primary-color);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15); /* Sombra de elevação */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    /* Sombra de elevação */
 }
 
 /* Responsividade do Header */
@@ -94,28 +112,35 @@ body { background-color: var(--bg-color); color: var(--text-color); }
 
 /* Desktop: Vendas (Catálogo grande, Painel menor) */
 @media(min-width: 768px) {
-    .container { grid-template-columns: 2fr 1fr; }
+    .container {
+        grid-template-columns: 2fr 1fr;
+    }
 }
 
 /* Desktop: Estoque (Formulário menor, Tabela grande) */
 @media(min-width: 768px) {
-    .container.estoque-layout { grid-template-columns: 1fr 2fr; }
+    .container.estoque-layout {
+        grid-template-columns: 1fr 2fr;
+    }
 }
 
 /* ==========================================
    BOTÕES GERAIS
    ========================================== */
-.btn-primary { 
-    background: var(--secondary-color); 
-    color: white; 
-    border: none; 
-    border-radius: 8px; 
-    font-size: 1rem; 
-    cursor: pointer; 
+.btn-primary {
+    background: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
     font-weight: bold;
     transition: 0.2s;
 }
-.btn-primary:hover { background: var(--primary-color); }
+
+.btn-primary:hover {
+    background: var(--primary-color);
+}
 
 .btn-secondary {
     background: #95a5a6;
@@ -127,14 +152,29 @@ body { background-color: var(--bg-color); color: var(--text-color); }
     font-weight: bold;
     transition: 0.2s;
 }
-.btn-secondary:hover { background: #7f8c8d; }
 
-.full-width { width: 100%; padding: 1rem; margin-top: 1rem; }
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+.full-width {
+    width: 100%;
+    padding: 1rem;
+    margin-top: 1rem;
+}
 
 /* ==========================================
    CATÁLOGO (PDV)
    ========================================== */
-.filters { margin-bottom: 1rem; display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.5rem; }
+.filters {
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    /* 🦋 A mágica aqui: permite que os botões quebrem de linha! */
+    padding-bottom: 0.5rem;
+}
+
 .filter-btn {
     padding: 0.5rem 1rem;
     border: 1px solid var(--primary-color);
@@ -145,7 +185,12 @@ body { background-color: var(--bg-color); color: var(--text-color); }
     transition: 0.3s;
     white-space: nowrap;
 }
-.filter-btn.active, .filter-btn:hover { background: var(--primary-color); color: white; }
+
+.filter-btn.active,
+.filter-btn:hover {
+    background: var(--primary-color);
+    color: white;
+}
 
 .product-grid {
     display: grid;
@@ -165,9 +210,23 @@ body { background-color: var(--bg-color); color: var(--text-color); }
     flex-direction: column;
     justify-content: space-between;
 }
-.product-card:hover { border-color: var(--accent-color); transform: translateY(-2px); }
-.product-card h3 { font-size: 1rem; margin: 0.5rem 0; }
-.price { color: var(--secondary-color); font-weight: bold; font-size: 1.1rem; }
+
+.product-card:hover {
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+.product-card h3 {
+    font-size: 1rem;
+    margin: 0.5rem 0;
+}
+
+.price {
+    color: var(--secondary-color);
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
 .btn-add {
     background: var(--accent-color);
     color: white;
@@ -179,7 +238,10 @@ body { background-color: var(--bg-color); color: var(--text-color); }
     cursor: pointer;
     transition: 0.2s;
 }
-.btn-add:hover { background: #16a085; }
+
+.btn-add:hover {
+    background: #16a085;
+}
 
 /* ==========================================
    PAINÉIS (CARRINHO E FORMULÁRIO DE ESTOQUE)
@@ -194,12 +256,40 @@ body { background-color: var(--bg-color); color: var(--text-color); }
     top: 1rem;
 }
 
-.cart-items { max-height: 250px; overflow-y: auto; margin-bottom: 1rem; border-bottom: 1px solid #eee; }
-.cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.9rem; }
+.cart-items {
+    max-height: 250px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
 
-.totals-area .row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; align-items: center; }
-.totals-area .total { font-size: 1.2rem; font-weight: bold; color: var(--primary-color); }
-#discount-input { width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; }
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.totals-area .row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    align-items: center;
+}
+
+.totals-area .total {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+#discount-input {
+    width: 60px;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
 
 /* Formulário de Estoque */
 .estoque-form .row {
@@ -207,9 +297,24 @@ body { background-color: var(--bg-color); color: var(--text-color); }
     flex-direction: column;
     margin-bottom: 1rem;
 }
-.estoque-form label { font-size: 0.9rem; margin-bottom: 0.4rem; font-weight: 600; color: var(--primary-color); }
-.estoque-form input { padding: 0.6rem; border: 1px solid #ccc; border-radius: 6px; outline: none; }
-.estoque-form input:focus { border-color: var(--primary-color); }
+
+.estoque-form label {
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.estoque-form input {
+    padding: 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    outline: none;
+}
+
+.estoque-form input:focus {
+    border-color: var(--primary-color);
+}
 
 /* ==========================================
    TABELAS (ESTOQUE E PEDIDOS)
@@ -221,29 +326,99 @@ body { background-color: var(--bg-color); color: var(--text-color); }
     overflow-x: auto;
 }
 
-.estoque-table, table { width: 100%; border-collapse: collapse; }
-.estoque-table th, th { background-color: var(--bg-color); color: var(--primary-color); padding: 1rem; text-align: left; }
-.estoque-table td, td { border-bottom: 1px solid #f0f0f0; padding: 1rem; }
-.estoque-table tr:hover td, tr:hover td { background-color: #fafafa; }
+.estoque-table,
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
 
-.btn-edit, .btn-delete {
+.estoque-table th,
+th {
+    background-color: var(--bg-color);
+    color: var(--primary-color);
+    padding: 1rem;
+    text-align: left;
+}
+
+.estoque-table td,
+td {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 1rem;
+}
+
+.estoque-table tr:hover td,
+tr:hover td {
+    background-color: #fafafa;
+}
+
+.btn-edit,
+.btn-delete {
     background: none;
     border: none;
     font-size: 1.2rem;
     transition: transform 0.2s;
     cursor: pointer;
 }
-.btn-edit:hover, .btn-delete:hover { transform: scale(1.2); }
 
-.btn-delete-solid { background-color: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.9rem; }
-.btn-delete-solid:hover { background-color: #c0392b; }
-.status-select { padding: 5px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold; }
+.btn-edit:hover,
+.btn-delete:hover {
+    transform: scale(1.2);
+}
+
+.btn-delete-solid {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-delete-solid:hover {
+    background-color: #c0392b;
+}
+
+.status-select {
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-weight: bold;
+}
 
 /* ==========================================
    CEP E UTILITÁRIOS
    ========================================== */
-.cep-search { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
-#cep-input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
-#btn-cep { background: var(--primary-color); color: white; border: none; padding: 0 1rem; border-radius: 6px; cursor: pointer; }
-.address-result { background: #f0f0f0; padding: 0.5rem; margin-top: 0.5rem; border-radius: 6px; font-size: 0.85rem; }
-.hidden { display: none; }
+.cep-search {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+#cep-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+#btn-cep {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.address-result {
+    background: #f0f0f0;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.hidden {
+    display: none;
+}
