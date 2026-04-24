@@ -2,29 +2,29 @@ const mongoose = require('mongoose');
 
 // 1. Sub-esquema para organizar os itens dentro do carrinho
 const ItemPedidoSchema = new mongoose.Schema({
-    produtoId: { 
+    produtoId: {
         type: Number,
-        required: true 
+        required: true
     },
-    nome: { 
-        type: String, 
-        required: true 
+    nome: {
+        type: String,
+        required: true
     },
-    quantidade: { 
-        type: Number, 
+    quantidade: {
+        type: Number,
         required: true,
         min: [1, 'A quantidade mínima é 1']
     },
-    precoUnitario: { 
-        type: Number, 
-        required: true 
+    precoUnitario: {
+        type: Number,
+        required: true
     },
-    subtotal: { 
-        type: Number, 
-        required: true 
+    subtotal: {
+        type: Number,
+        required: true
     }
-}, { 
-    _id: false 
+}, {
+    _id: false
 });
 
 // 2. Esquema Principal do Pedido
@@ -32,14 +32,14 @@ const PedidoSchema = new mongoose.Schema({
     cliente: {
         type: String,
         required: true,
-        trim: true 
+        trim: true
     },
     endereco: {
-        cep: { type: String, required: true },
-        logradouro: { type: String, required: true },
+        cep: { type: String, required: false },
+        logradouro: { type: String, required: false },
         bairro: { type: String },
-        cidade: { type: String, required: true },
-        estado: { type: String, required: true }
+        cidade: { type: String, required: false },
+        estado: { type: String, required: false }
     },
     itens: [ItemPedidoSchema],
     totalFinal: {
@@ -49,7 +49,7 @@ const PedidoSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Pendente', 'Pago', 'Enviado', 'Cancelado'], 
+        enum: ['Pendente', 'Pago', 'Enviado', 'Cancelado'],
         default: 'Pendente'
     }
 }, {
