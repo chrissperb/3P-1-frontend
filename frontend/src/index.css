@@ -1,0 +1,66 @@
+/* IMPORTANDO A FONTE DA BORBOLÊLALÁ */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+/* ==========================================
+   RESET E ESTILOS GLOBAIS
+   ========================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Nunito', sans-serif;
+    background-color: #fdf2f7;
+    color: #2c3e50;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Força os botões e inputs a usarem a mesma fonte do body */
+button,
+input,
+select,
+textarea {
+    font-family: inherit;
+}
+
+/* ==========================================
+   EFEITOS DE HOVER (INTERAÇÃO) GLOBAIS
+   ========================================== */
+button:hover {
+    filter: brightness(0.9);
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+/* Suaviza as transições de todos os botões */
+button {
+    transition: all 0.2s ease-in-out;
+}
+
+/* ==========================================
+   ESTILIZAÇÃO DA BARRA DE ROLAGEM (SCROLLBAR)
+   ========================================== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #bdc3c7;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #9b59b6;
+}
