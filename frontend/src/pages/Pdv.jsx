@@ -22,7 +22,7 @@ export default function Pdv() {
             const token = localStorage.getItem('token');
             if (!token) { navigate('/login'); return; }
 
-            const resposta = await fetch(import.meta.env.VITE_API_URL + '/api/produtos', {
+            const resposta = await fetch(import.meta.env.VITE_API_URL + '/produtos', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -74,7 +74,7 @@ export default function Pdv() {
 
         try {
             const token = localStorage.getItem('token');
-            const resposta = await fetch('http://localhost:3000/api/frete', {
+            const resposta = await fetch(import.meta.env.VITE_API_URL + '/frete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ cepDestino: cep })
@@ -115,7 +115,7 @@ export default function Pdv() {
 
         try {
             const token = localStorage.getItem('token');
-            const resposta = await fetch('http://localhost:3000/api/pedidos', {
+            const resposta = await fetch(import.meta.env.VITE_API_URL + '/pedidos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(pedido)
