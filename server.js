@@ -1,7 +1,7 @@
 // ==========================================
 // server.js - Ponto de Entrada do Backend
 // ==========================================
-require('dotenv').config(); 
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -40,14 +40,14 @@ const swaggerOptions = {
         },
         security: [{ bearerAuth: [] }]
     },
-    apis: ['./routes/*.js'], 
+    apis: ['./routes/*.js'],
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
 // 1. Middlewares
-app.use(cors()); 
-app.use(express.json()); 
+app.use(cors());
+app.use(express.json());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // 2. Conexão com o MongoDB
@@ -56,8 +56,13 @@ mongoose.connect(process.env.MONGODB_URI)
     .catch((erro) => console.error('Erro ao conectar no MongoDB:', erro.message));
 
 // 3. Sincronização com o Frontend
-const pastaClient = path.join(__dirname, 'client');
-app.use(express.static(pastaClient));
+app.get('/', (req, res) => {
+    res.json({
+        status: "online",
+        mensagem: "API da Borbolêlalá rodando com sucesso.",
+        versao: "1.0.0"
+    });
+});
 
 // 4. ROTAS DA API (Padrão MVC)
 app.use('/api', produtoRoutes);
