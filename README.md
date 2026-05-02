@@ -286,11 +286,11 @@ A aplicação disponibiliza uma API RESTful completa para comunicação entre o 
 - [x] Implementar Banco de Dados MongoDB para persistência.
 - [x] Criar CRUD de produtos e controle de estoque real.
 - [x] Integrar API de fretes com cálculo de dimensões.
-- [x] **Criar sistema de Login (Autenticação JWT) com Bcrypt.**
-- [x] **Implementar gestão de pedidos (Update Status / Delete).**
-- [x] **Documentar a API utilizando Swagger / OpenAPI 3.0.**
-- [ ] Desenvolver Dashboard de Relatórios (Vendas do mês, produtos mais vendidos).
-- [ ] Deploy do Monolito em nuvem (Ex: Render ou Railway).
+- [x] Criar sistema de Login (Autenticação JWT) com Bcrypt.
+- [x] Implementar gestão de pedidos (Update Status / Delete).
+- [x] Documentar a API utilizando Swagger / OpenAPI 3.0.
+- [x] Desenvolver Dashboard de Relatórios (Vendas do mês, produtos mais vendidos).
+- [x] Deploy do Monolito em nuvem (Ex: Render ou Railway).
 
 ---
 Desenvolvido com 💜 pela equipe de TI da Borbolêlalá.
