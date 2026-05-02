@@ -21,8 +21,8 @@ export default function Relatorios() {
                 const headers = { 'Authorization': `Bearer ${token}` };
 
                 const [resProdutos, resPedidos] = await Promise.all([
-                    fetch(import.meta.env.VITE_API_URL + '/api/produtos', { headers }),
-                    fetch(import.meta.env.VITE_API_URL + '/api/pedidos', { headers })
+                    fetch(import.meta.env.VITE_API_URL + '/produtos', { headers }),
+                    fetch(import.meta.env.VITE_API_URL + '/pedidos', { headers })
                 ]);
 
                 if (resProdutos.ok && resPedidos.ok) {
