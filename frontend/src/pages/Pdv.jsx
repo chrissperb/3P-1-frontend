@@ -22,7 +22,7 @@ export default function Pdv() {
             const token = localStorage.getItem('token');
             if (!token) { navigate('/login'); return; }
 
-            const resposta = await fetch('http://localhost:3000/api/produtos', {
+            const resposta = await fetch(import.meta.env.VITE_API_URL + '/api/produtos', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
