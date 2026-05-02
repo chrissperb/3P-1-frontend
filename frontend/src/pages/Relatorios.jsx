@@ -57,7 +57,7 @@ export default function Relatorios() {
     const atualizarStatusPedido = async (pedidoId, novoStatus) => {
         try {
             const token = localStorage.getItem('token');
-            const resposta = await fetch(import.meta.env.VITE_API_URL + '/pedidos/${pedidoId}/status', {
+            const resposta = await fetch(import.meta.env.VITE_API_URL + '/pedidos' + pedidoId + '/status', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ status: novoStatus })
