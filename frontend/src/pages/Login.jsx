@@ -23,8 +23,8 @@ export default function Login() {
 
             if (resposta.ok) {
                 localStorage.setItem('token', dados.token);
+                localStorage.setItem('nomeUsuario', dados.usuario.nome);
 
-                // Redireciona para o PDV
                 navigate('/');
             } else {
                 setErro(dados.mensagem || 'Erro ao fazer login.');
