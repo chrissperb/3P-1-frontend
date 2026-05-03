@@ -5,9 +5,9 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
+const errorHandler = require('./middlewares/errorHandler');
 
 // IMPORTAÇÃO DAS ROTAS
 const produtoRoutes = require('./routes/produtoRoutes');
@@ -69,14 +69,10 @@ app.use('/api', produtoRoutes);
 app.use('/api', pedidoRoutes);
 app.use('/api', freteRoutes);
 app.use('/api', usuarioRoutes);
+app.use(errorHandler);
 
-// 5. Rota de fallback (Sempre no final)
-app.get(/.*/, (req, res) => {
-    res.sendFile(path.join(pastaClient, 'index.html'));
-});
-
-// 6. Inicialização do Servidor
+// 5. Inicialização do Servidor
 app.listen(PORT, () => {
-    console.log(`Servidor Borbolêlalá rodando na porta ${PORT}`);
+    console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Acesse: http://localhost:${PORT}`);
 });
