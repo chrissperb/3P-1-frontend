@@ -3,7 +3,7 @@
 > **Versão:** 3.0.0 (MVP Fullstack Seguro)  
 > **Status:** Concluído / Pronto para Deploy 🚀
 
-Bem-vindo ao repositório do **Sistema de Frente de Caixa (PDV), Backoffice e Gestão de Pedidos** da Borbolêlalá Moda Infantil. Este projeto evoluiu para uma aplicação Fullstack completa e segura, contando com Autenticação via Tokens (JWT), controle rigoroso de rotas, reversão automática de estoque em cancelamentos e documentação interativa com Swagger (OpenAPI 3.0). Tudo com uma interface mobile-first pensada para o uso dinâmico da loja.
+Bem-vindo ao repositório do **Sistema de Frente de Caixa (PDV), Backoffice e Gestão de Pedidos** da Borbolêlalá Moda Infantil. Este projeto evoluiu para uma aplicação Fullstack moderna e desacoplada, contando com um Frontend em React (Vite) e uma API RESTful no Backend (Node/Express). O sistema possui Autenticação via Tokens (JWT), controle rigoroso de rotas, reversão automática de estoque em cancelamentos, painel de relatórios dinâmico e documentação interativa com Swagger. Tudo com uma interface mobile-first, lúdica e pensada para o uso dinâmico da loja.
 
 ## Telas do Sistema
 - **PDV (Frente de Caixa):** Vendas rápidas com integração de cálculo de frete.
@@ -15,47 +15,32 @@ Bem-vindo ao repositório do **Sistema de Frente de Caixa (PDV), Backoffice e Ge
 
 ## 📂 Arquitetura e Estrutura do Projeto
 
-O projeto migrou de uma SPA estática para um **Monolito Modular** utilizando o padrão **MVC (Model-View-Controller)** no Backend (Node.js) e Vanilla JS no Frontend.
+O projeto migrou de um monolito com Vanilla JS para uma **Arquitetura Desacoplada (Client-Server)**. O Frontend agora é uma **Single Page Application (SPA)** construída com **React**, enquanto o Backend atua puramente como uma **API RESTful** fornecendo JSON.
 
 ```plaintext
 borbolelala-pdv/
 │
-├── controllers/          
-│   ├── FreteController.js
-│   ├── PedidoController.js
-│   ├── ProdutoController.js
-│   └── UsuarioController.js
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── index.html
+│   ├── vite.config.js    
+│   ├── .env
+│   └── package.json
 │
-├── middlewares/
-│   └── authMiddleware.js
-│
-├── models/               
-│   ├── pedido/Pedido.js
-│   ├── produto/Produto.js
-│   └── usuario/Usuario.js
-│
-├── services/
-│   └── PedidoService.js
-│   └── FreteService.js
-│   └── ProdutoService.js
-│   └── UsuarioService.js
-│
-├── routes/               
-│   ├── freteRoutes.js
-│   ├── pedidoRoutes.js
-│   ├── produtoRoutes.js
-│   └── usuarioRoutes.js
-│
-├── client/               
-│   ├── index.html (PDV)
-│   ├── estoque.html (Backoffice)
-│   ├── pedidos.html (Gestão)
-│   ├── login.html (Autenticação)
-│   ├── app.js, estoque.js, pedidos.js, login.js
-│   └── styles/style.css  
-│
-├── server.js (Configuração do Express e Swagger OpenAPI)         
-└── package.json
+├── backend/
+│   ├── controllers/
+│   ├── middlewares/
+│   ├── models/
+│   ├── routes/
+│   ├── services/         
+│   ├── server.js         
+│   ├── .env              
+│   └── package.json  
+
 ```
 ## 🚀 Como Rodar o Projeto (Ambiente de Desenvolvimento)
 Como a aplicação agora possui um Backend em Node.js e um Banco de Dados, ela deve ser executada localmente através de um servidor.
@@ -65,13 +50,13 @@ Como a aplicação agora possui um Backend em Node.js e um Banco de Dados, ela d
 **1. Clone este repositório:**
 
 ```
-git clone https://github.com/chrissperb/borbolelala-pdv.git
+git clone https://github.com/chrissperb/3P-1-frontend.git
 ```
 
-**2. Navegue até a pasta do projeto e instale as dependências:**
+**2. Navegue até a pasta do frontend do projeto e instale as dependências:**
 
 ```
-cd borbolelala-pdv
+cd frontend
 npm install
 ```
 **3. Crie um arquivo chamado `.env` na raiz do projeto e configure suas credenciais:**
@@ -286,11 +271,11 @@ A aplicação disponibiliza uma API RESTful completa para comunicação entre o 
 - [x] Implementar Banco de Dados MongoDB para persistência.
 - [x] Criar CRUD de produtos e controle de estoque real.
 - [x] Integrar API de fretes com cálculo de dimensões.
-- [x] **Criar sistema de Login (Autenticação JWT) com Bcrypt.**
-- [x] **Implementar gestão de pedidos (Update Status / Delete).**
-- [x] **Documentar a API utilizando Swagger / OpenAPI 3.0.**
-- [ ] Desenvolver Dashboard de Relatórios (Vendas do mês, produtos mais vendidos).
-- [ ] Deploy do Monolito em nuvem (Ex: Render ou Railway).
+- [x] Criar sistema de Login (Autenticação JWT) com Bcrypt.
+- [x] Implementar gestão de pedidos (Update Status / Delete).
+- [x] Documentar a API utilizando Swagger / OpenAPI 3.0.
+- [x] Desenvolver Dashboard de Relatórios (Vendas do mês, produtos mais vendidos).
+- [x] Deploy do Monolito em nuvem (Ex: Render ou Railway).
 
 ---
 Desenvolvido com 💜 pela equipe de TI da Borbolêlalá.

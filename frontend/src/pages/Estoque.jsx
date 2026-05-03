@@ -22,7 +22,7 @@ export default function Estoque() {
                     return;
                 }
 
-                const resposta = await fetch('http://localhost:3000/api/produtos', {
+                const resposta = await fetch(import.meta.env.VITE_API_URL + '/produtos', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ export default function Estoque() {
 
         try {
             const token = localStorage.getItem('token');
-            const resposta = await fetch(`http://localhost:3000/api/produtos/${id}`, {
+            const resposta = await fetch(import.meta.env.VITE_API_URL + '/produtos/${id}', {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`

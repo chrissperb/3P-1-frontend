@@ -13,7 +13,7 @@ export default function Login() {
         setErro('');
 
         try {
-            const resposta = await fetch('http://localhost:3000/api/login', {
+            const resposta = await fetch(import.meta.env.VITE_API_URL + '/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, senha })
@@ -23,8 +23,8 @@ export default function Login() {
 
             if (resposta.ok) {
                 localStorage.setItem('token', dados.token);
+                localStorage.setItem('nomeUsuario', dados.usuario.nome);
 
-                // Redireciona para o PDV
                 navigate('/');
             } else {
                 setErro(dados.mensagem || 'Erro ao fazer login.');

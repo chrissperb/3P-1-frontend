@@ -21,8 +21,8 @@ export default function Relatorios() {
                 const headers = { 'Authorization': `Bearer ${token}` };
 
                 const [resProdutos, resPedidos] = await Promise.all([
-                    fetch('http://localhost:3000/api/produtos', { headers }),
-                    fetch('http://localhost:3000/api/pedidos', { headers })
+                    fetch(import.meta.env.VITE_API_URL + '/produtos', { headers }),
+                    fetch(import.meta.env.VITE_API_URL + '/pedidos', { headers })
                 ]);
 
                 if (resProdutos.ok && resPedidos.ok) {
@@ -57,7 +57,7 @@ export default function Relatorios() {
     const atualizarStatusPedido = async (pedidoId, novoStatus) => {
         try {
             const token = localStorage.getItem('token');
-            const resposta = await fetch(`http://localhost:3000/api/pedidos/${pedidoId}/status`, {
+            const resposta = await fetch(import.meta.env.VITE_API_URL + '/pedidos/' + pedidoId + '/status', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ status: novoStatus })
