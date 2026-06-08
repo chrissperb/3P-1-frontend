@@ -2,16 +2,22 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Pdv() {
-    // 1. Estados Principais
     const [produtos, setProdutos] = useState([]);
     const [categoriaAtiva, setCategoriaAtiva] = useState('Todas');
     const [carrinho, setCarrinho] = useState([]);
     const [carregando, setCarregando] = useState(true);
-    const [finalizando, setFinalizando] = useState(false);
-    const [cliente, setCliente] = useState('');
 
-    // 2. Estados do Frete 
+    // Estados do Cliente e Finalização
+    const [cliente, setCliente] = useState('');
+    const [finalizando, setFinalizando] = useState(false);
+
+    // 🦋 ESTADOS DO FRETE E DIMENSÕES DO PACOTE
     const [cepDestino, setCepDestino] = useState('');
+    const [pesoCaixa, setPesoCaixa] = useState('0.3');
+    const [alturaCaixa, setAlturaCaixa] = useState('4');
+    const [larguraCaixa, setLarguraCaixa] = useState('11');
+    const [comprimentoCaixa, setComprimentoCaixa] = useState('16');
+
     const [opcoesFrete, setOpcoesFrete] = useState([]);
     const [freteSelecionado, setFreteSelecionado] = useState(0);
     const [nomeFreteSelecionado, setNomeFreteSelecionado] = useState('');
@@ -19,9 +25,7 @@ export default function Pdv() {
 
     const navigate = useNavigate();
 
-    // ==========================================
-    // FUNÇÕES DE BUSCA E CATÁLOGO
-    // ==========================================
+    // 1. Buscar Produtos
     const buscarProdutos = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -52,9 +56,7 @@ export default function Pdv() {
     const categorias = ['Todas', ...new Set(produtos.map(p => p.categoria))];
     const produtosFiltrados = categoriaAtiva === 'Todas' ? produtos : produtos.filter(p => p.categoria === categoriaAtiva);
 
-    // ==========================================
-    // LÓGICA DO CARRINHO E TOTAIS
-    // ==========================================
+    // 2. Lógica do Carrinho
     const adicionarAoCarrinho = (produto) => {
         setCarrinho((carrinhoAtual) => {
             const itemExistente = carrinhoAtual.find(item => item.id === produto.id);
@@ -74,29 +76,31 @@ export default function Pdv() {
     const subtotalProdutos = carrinho.reduce((acc, item) => acc + (item.precoVenda * item.quantidadeComprada), 0);
     const totalFinal = subtotalProdutos + freteSelecionado;
 
-    // ==========================================
-    // INTEGRAÇÃO COM A API DE FRETE
-    // ==========================================
+    // 3. CALCULAR FRETE COM DIMENSÕES DINÂMICAS
     const calcularFrete = async () => {
         if (cepDestino.length < 8) {
-            alert("Por favor, insira um CEP válido com 8 dígitos.");
+            alert("Por favor, insira um CEP válido.");
             return;
         }
 
         setCarregandoFrete(true);
         setOpcoesFrete([]);
-        setFreteSelecionado(0);
-        setNomeFreteSelecionado('');
 
         try {
             const token = localStorage.getItem('token');
 
+            // 🦋 Usando os estados das dimensões preenchidas pelo usuário
             const payload = {
-                from: { postal_code: "88495000" }, // CEP da Origem
-                to: { postal_code: cepDestino.replace(/\D/g, '') }, // CEP do Cliente
+                from: { postal_code: "88495000" },
+                to: { postal_code: cepDestino.replace(/\D/g, '') },
                 services: "1,2,17",
                 options: { own_hand: false, receipt: false, insurance_value: 0, use_insurance_value: false },
-                package: { weight: 0.3, height: 4, width: 11, length: 16 } // Dimensões da embalagem
+                package: {
+                    weight: parseFloat(pesoCaixa) || 0.3,
+                    height: parseFloat(alturaCaixa) || 4,
+                    width: parseFloat(larguraCaixa) || 11,
+                    length: parseFloat(comprimentoCaixa) || 16
+                }
             };
 
             const resposta = await fetch(`${import.meta.env.VITE_API_URL}/frete`, {
@@ -112,7 +116,7 @@ export default function Pdv() {
                 const dados = await resposta.json();
                 setOpcoesFrete(dados);
             } else {
-                alert("Erro ao calcular o frete. Verifique o CEP.");
+                alert("Erro ao calcular o frete. Verifique o CEP e as dimensões.");
             }
         } catch (erro) {
             console.error("Erro na API de frete:", erro);
@@ -122,9 +126,7 @@ export default function Pdv() {
         }
     };
 
-    // ==========================================
-    // FINALIZAR A VENDA
-    // ==========================================
+    // 4. FINALIZAR VENDA
     const finalizarVenda = async () => {
         if (carrinho.length === 0) return;
         setFinalizando(true);
@@ -141,7 +143,7 @@ export default function Pdv() {
                 cidade: cepDestino !== '' ? 'A confirmar' : 'Loja Física',
                 estado: cepDestino !== '' ? 'NI' : 'LF'
             },
-            frete: freteSelecionado
+            frete: freteSelecionado // Salvamos o frete no banco para relatórios
         };
 
         try {
@@ -155,6 +157,7 @@ export default function Pdv() {
             if (resposta.ok) {
                 alert('🎉 Venda finalizada com sucesso! Estoque atualizado.');
 
+                // Limpeza do carrinho
                 setCarrinho([]);
                 setCliente('');
                 setCepDestino('');
@@ -177,10 +180,7 @@ export default function Pdv() {
 
     return (
         <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-
-            {/* ==========================================
-                LADO ESQUERDO: CATÁLOGO DE PRODUTOS
-                ========================================== */}
+            {/* LADO ESQUERDO: CATÁLOGO */}
             <div style={{ flex: '1 1 60%', minWidth: '300px' }}>
                 <h2 style={{ color: '#2c3e50', marginTop: 0 }}>🛍️ Frente de Caixa</h2>
 
@@ -193,7 +193,7 @@ export default function Pdv() {
                 </div>
 
                 {carregando ? (
-                    <p style={{ color: '#7f8c8d' }}>A carregar catálogo...</p>
+                    <p>A carregar catálogo...</p>
                 ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
                         {produtosFiltrados.map(produto => (
@@ -216,9 +216,7 @@ export default function Pdv() {
                 )}
             </div>
 
-            {/* ==========================================
-                LADO DIREITO: CARRINHO E CHECKOUT
-                ========================================== */}
+            {/* LADO DIREITO: CARRINHO E CHECKOUT */}
             <div style={{ flex: '1 1 30%', minWidth: '300px', backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', alignSelf: 'flex-start' }}>
                 <h3 style={{ margin: '0 0 20px 0', color: '#2c3e50', borderBottom: '2px solid #ecf0f1', paddingBottom: '10px' }}>
                     🛒 Carrinho e Entrega
@@ -240,31 +238,41 @@ export default function Pdv() {
                             ))}
                         </div>
 
-                        {/* DADOS DO CLIENTE E CÁLCULO DE FRETE */}
+                        {/* DADOS OPCIONAIS E FRETE */}
                         <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#fdf2f7', borderRadius: '6px' }}>
-                            <label style={{ display: 'block', fontSize: '0.85rem', color: '#7f8c8d', marginBottom: '5px' }}>Nome do Cliente (Opcional):</label>
+                            <label style={{ display: 'block', fontSize: '0.85rem', color: '#7f8c8d', marginBottom: '5px' }}>👤 Nome do Cliente (Opcional):</label>
                             <input type="text" value={cliente} onChange={(e) => setCliente(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '15px', border: '1px solid #bdc3c7', borderRadius: '4px' }} placeholder="Ex: Consumidor Final" />
 
-                            <label style={{ display: 'block', fontSize: '0.85rem', color: '#7f8c8d', marginBottom: '5px' }}>🚚 Calcular Frete (Opcional):</label>
-                            <div style={{ display: 'flex', gap: '5px', marginBottom: '10px' }}>
-                                <input
-                                    type="text"
-                                    placeholder="CEP (Apenas números)"
-                                    maxLength="8"
-                                    value={cepDestino}
-                                    onChange={(e) => setCepDestino(e.target.value.replace(/\D/g, ''))}
-                                    style={{ flex: '1', padding: '8px', border: '1px solid #bdc3c7', borderRadius: '4px' }}
-                                />
-                                <button
-                                    onClick={calcularFrete}
-                                    disabled={carregandoFrete || cepDestino.length !== 8}
-                                    style={{ padding: '8px 12px', backgroundColor: '#9b59b6', color: '#fff', border: 'none', borderRadius: '4px', cursor: (carregandoFrete || cepDestino.length !== 8) ? 'not-allowed' : 'pointer' }}
-                                >
+                            <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#34495e' }}>🚚 Cálculo de Frete</h4>
+
+                            {/* 🦋 GRID COMPACTO DE DIMENSÕES */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+                                <div>
+                                    <label style={{ fontSize: '0.75rem', color: '#7f8c8d' }}>Peso (kg)</label>
+                                    <input type="number" step="0.1" value={pesoCaixa} onChange={(e) => setPesoCaixa(e.target.value)} style={{ width: '100%', padding: '6px', border: '1px solid #bdc3c7', borderRadius: '4px', boxSizing: 'border-box' }} />
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '0.75rem', color: '#7f8c8d' }}>Altura (cm)</label>
+                                    <input type="number" value={alturaCaixa} onChange={(e) => setAlturaCaixa(e.target.value)} style={{ width: '100%', padding: '6px', border: '1px solid #bdc3c7', borderRadius: '4px', boxSizing: 'border-box' }} />
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '0.75rem', color: '#7f8c8d' }}>Largura (cm)</label>
+                                    <input type="number" value={larguraCaixa} onChange={(e) => setLarguraCaixa(e.target.value)} style={{ width: '100%', padding: '6px', border: '1px solid #bdc3c7', borderRadius: '4px', boxSizing: 'border-box' }} />
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '0.75rem', color: '#7f8c8d' }}>Comprim. (cm)</label>
+                                    <input type="number" value={comprimentoCaixa} onChange={(e) => setComprimentoCaixa(e.target.value)} style={{ width: '100%', padding: '6px', border: '1px solid #bdc3c7', borderRadius: '4px', boxSizing: 'border-box' }} />
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '5px' }}>
+                                <input type="text" placeholder="CEP do Destino" maxLength="8" value={cepDestino} onChange={(e) => setCepDestino(e.target.value.replace(/\D/g, ''))} style={{ flex: '1', padding: '8px', border: '1px solid #bdc3c7', borderRadius: '4px' }} />
+                                <button onClick={calcularFrete} disabled={carregandoFrete || cepDestino.length !== 8} style={{ padding: '8px 12px', backgroundColor: '#9b59b6', color: '#fff', border: 'none', borderRadius: '4px', cursor: (carregandoFrete || cepDestino.length !== 8) ? 'not-allowed' : 'pointer' }}>
                                     {carregandoFrete ? '⏳' : 'Buscar'}
                                 </button>
                             </div>
 
-                            {/* EXIBIÇÃO DAS OPÇÕES DE FRETE DE FORMA DINÂMICA */}
+                            {/* OPÇÕES DE FRETE RETORNADAS PELA API */}
                             {opcoesFrete.length > 0 && (
                                 <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#fff', padding: '10px', borderRadius: '4px', border: '1px dashed #bdc3c7' }}>
                                     {opcoesFrete.map((opcao, index) => (
@@ -294,17 +302,14 @@ export default function Pdv() {
                                 <span>Subtotal:</span>
                                 <span>R$ {subtotalProdutos.toFixed(2)}</span>
                             </div>
-
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '0.9rem', color: '#7f8c8d' }}>
-                                <span>Frete ({nomeFreteSelecionado || 'Não selecionado'}):</span>
+                                <span>Frete ({nomeFreteSelecionado || 'Nenhum'}):</span>
                                 <span>R$ {freteSelecionado.toFixed(2)}</span>
                             </div>
-
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontSize: '1.2rem', fontWeight: 'bold', color: '#2c3e50' }}>
                                 <span>Total Geral:</span>
                                 <span>R$ {totalFinal.toFixed(2)}</span>
                             </div>
-
                             <button onClick={finalizarVenda} disabled={finalizando} style={{ width: '100%', padding: '15px', backgroundColor: finalizando ? '#95a5a6' : '#2ecc71', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '1.1rem', fontWeight: 'bold', cursor: finalizando ? 'not-allowed' : 'pointer' }}>
                                 {finalizando ? 'A Processar...' : '✅ Finalizar Venda'}
                             </button>
