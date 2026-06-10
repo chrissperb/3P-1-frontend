@@ -89,7 +89,7 @@ export default function Pdv() {
         try {
             const token = localStorage.getItem('token');
 
-            // 🦋 Usando os estados das dimensões preenchidas pelo usuário
+            // Usando os estados das dimensões preenchidas pelo usuário
             const payload = {
                 from: { postal_code: "88495000" },
                 to: { postal_code: cepDestino.replace(/\D/g, '') },
@@ -274,8 +274,8 @@ export default function Pdv() {
 
                             {/* OPÇÕES DE FRETE RETORNADAS PELA API */}
                             {opcoesFrete.length > 0 && (
-                                <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#fff', padding: '10px', borderRadius: '4px', border: '1px dashed #bdc3c7' }}>
-                                    {opcoesFrete.map((opcao, index) => (
+                                <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    {opcoesFrete.filter(opcao => !opcao.error && !opcao.has_error && opcao.price).map((opcao, index) => (
                                         <label key={index} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.85rem', color: '#34495e', cursor: 'pointer' }}>
                                             <input
                                                 type="radio"
