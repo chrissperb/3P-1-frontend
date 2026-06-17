@@ -1,0 +1,33 @@
+name: Pipeline CI/CD - Borbolêlalá Backend
+
+# 1. GATILHOS (Triggers)
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+# 2. TAREFAS (Jobs)
+jobs:
+  build-and-test:
+    name: Instalação e Testes
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Fazer checkout do código
+      uses: actions/checkout@v4
+
+    - name: Configurar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Instalar Dependências
+      run: npm install
+
+    - name: Executar Testes e Verificar Cobertura
+      run: npm run test:coverage
+      env:
+        JWT_SECRET: "segredo-pipeline-ci"
+        NODE_ENV: "test"

@@ -51,9 +51,11 @@ app.use(express.json());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // 2. Conexão com o MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('Conectado ao MongoDB com sucesso!'))
-    .catch((erro) => console.error('Erro ao conectar no MongoDB:', erro.message));
+if (process.env.NODE_ENV !== 'test') {
+    mongoose.connect(process.env.MONGODB_URI)
+        .then(() => console.log('Conectado ao MongoDB com sucesso!'))
+        .catch((erro) => console.error('Erro ao conectar no MongoDB:', erro.message));
+}
 
 // 3. Sincronização com o Frontend
 app.get('/', (req, res) => {
@@ -71,8 +73,13 @@ app.use('/api', freteRoutes);
 app.use('/api', usuarioRoutes);
 app.use(errorHandler);
 
-// 5. Inicialização do Servidor
-app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
-    console.log(`Acesse: http://localhost:${PORT}`);
-});
+// 5. Inicialização do Servidor (para teste ou aplicação per se)
+
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+        console.log(`Servidor Borbolêlalá rodando na porta ${PORT}`);
+        console.log(`Acesse: http://localhost:${PORT}`);
+    });
+}
+
+module.exports = app;
