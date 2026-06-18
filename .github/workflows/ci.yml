@@ -1,17 +1,47 @@
-name: Pipeline CI/CD - Borbolêlalá Backend
+name: Pipeline CI/CD - Borbolêlalá
 
-# 1. GATILHOS (Triggers)
 on:
   push:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
 
-# 2. TAREFAS (Jobs)
 jobs:
-  build-and-test:
-    name: Instalação e Testes
+  # ==========================================
+  # MÁQUINA 1: TESTES DO BACK-END
+  # ==========================================
+  testes-backend:
+    name: Testes do Back-end
     runs-on: ubuntu-latest
+    
+    steps:
+    - name: Fazer checkout do código
+      uses: actions/checkout@v4
+
+    - name: Configurar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Instalar Dependências (Back)
+      run: npm install
+
+    - name: Executar Testes (Back)
+      run: npm run test:coverage
+      env:
+        JWT_SECRET: "segredo-pipeline-ci"
+        NODE_ENV: "test"
+
+  # ==========================================
+  # MÁQUINA 2: TESTES DO FRONT-END
+  # ==========================================
+  testes-frontend:
+    name: Testes do Front-end
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ./frontend
 
     steps:
     - name: Fazer checkout do código
@@ -21,13 +51,9 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        cache: 'npm'
 
-    - name: Instalar Dependências
+    - name: Instalar Dependências (Front)
       run: npm install
 
-    - name: Executar Testes e Verificar Cobertura
+    - name: Executar Testes (Front)
       run: npm run test:coverage
-      env:
-        JWT_SECRET: "segredo-pipeline-ci"
-        NODE_ENV: "test"
