@@ -44,8 +44,9 @@ export default function Login() {
 
                 <form onSubmit={fazerLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     <div>
-                        <label style={{ display: 'block', marginBottom: '5px', color: '#7f8c8d' }}>E-mail</label>
+                        <label htmlFor="email" style={{ display: 'block', marginBottom: '5px', color: '#7f8c8d' }}>E-mail</label>
                         <input
+                            id="email"
                             type="email"
                             required
                             value={email}
@@ -54,8 +55,9 @@ export default function Login() {
                         />
                     </div>
                     <div>
-                        <label style={{ display: 'block', marginBottom: '5px', color: '#7f8c8d' }}>Senha</label>
+                        <label htmlFor="senha" style={{ display: 'block', marginBottom: '5px', color: '#7f8c8d' }}>Senha</label>
                         <input
+                            id="senha"
                             type="password"
                             required
                             value={senha}
