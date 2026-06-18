@@ -61,7 +61,7 @@ export default function Estoque() {
 
         try {
             const token = localStorage.getItem('token');
-            const resposta = await fetch(import.meta.env.VITE_API_URL + '/produtos/${id}', {
+            const resposta = await fetch(`${import.meta.env.VITE_API_URL}/produtos/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
