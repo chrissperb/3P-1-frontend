@@ -248,19 +248,84 @@ A aplicação disponibiliza uma API RESTful completa para comunicação entre o 
 ## 🛠️ Tecnologias Utilizadas
 ### Backend:
 
-- Node.js & Express (Criação do Servidor e API REST)
+- **Node.js & Express:** Criação do servidor HTTP e roteamento dinâmico.
 
-- MongoDB & Mongoose (Banco de Dados NoSQL e Modelagem)
+- **MongoDB & Mongoose:** Banco de dados NoSQL e mapeamento de objetos (ODM).
 
-- Axios (Cliente HTTP para integrações externas)
+- **Axios:** Cliente HTTP para integrações externas.
 
-- Dotenv (Segurança de credenciais)
+- **Dotenv:** Segurança de credenciais.
+
+- **JSON Web Tokens (JWT):** Emissão de credenciais e tokens de acesso sem estado (Stateless).
+
+- **Bcrypt:** Algoritmo de hash para criptografia irreversível de senhas.
+
+- **Swagger UI & OpenAPI 3.0:** Documentação interativa de endpoints exposta em rota nativa.
+
+- **Jest:** Framework principal para execução de testes unitários rápidos.
 
 ### Frontend:
 
-- HTML5 & CSS3 (Semântica, Flexbox, Grid)
+- **React (Vite):** Framework modular para construção de interfaces reativas ultravelozes.
 
-- Vanilla JavaScript (ES6+, DOM Manipulation, Fetch API)
+- **React Testing Library (RTL):** Biblioteca focada em validar o comportamento e a acessibilidade da tela sob a ótica do usuário final.
+
+- **Vitest:** Motor de execução de testes de frontend nativo e integrado ao ciclo de vida do Vite.
+
+- **jsdom:** Ambiente de simulação de navegador web baseado em memória, rodando diretamente via terminal.
+
+## 🧪 Engenharia de Testes e Cobertura de Código
+Para atender aos rígidos critérios de homologação (mínimo de 80% de cobertura de código), o sistema foi submetido a estratégias avançadas de testes em ambas as vertentes da aplicação.
+
+### ⚙️ Testes de Backend (Jest)
+Os testes cobrem caminhos felizes e tratamentos de exceção complexos sem poluir a base de dados real, utilizando Mocks estritos das camadas adjacentes:
+- **Services:** Testes focados na lógica matemática do checkout, baixas automáticas de mercadorias e estorno automático de itens de estoque no cancelamento de pedidos.
+
+- **Middlewares:** Validação das travas de token Bearer (válidos, expirados, ausentes) e testes de granularidade no barramento de erros com o `errorHandler`.
+
+- **Controllers:** Testes simulados isolando as respostas HTTP apropriadas (200, 201, 400, 404, 500) com base em injeções de respostas controladas dos Mocks.
+
+### 🎨 Testes de Frontend (React Testing Library + Vitest)
+Os testes de interface simulam interações reais do usuário, validando regras de experiência de usuário (UX) e acessibilidade (A11y):
+
+- **PDV:** Inserção assíncrona de itens no carrinho, atualização instantânea de subtotais e validação de travas de segurança contra compras que excedem o estoque disponível.
+
+- **Estoque:** Testes de filtros dinâmicos em tempo real, tratamento elegante de falhas de rede (exibição de banners de Erro 500) e validação do fluxo do interruptor do navegador (`window.confirm`) no cancelamento de exclusões.
+
+- **Login:** Preenchimento de inputs vinculados via rótulos acessíveis (`htmlFor`) e teste do armazenamento seguro do token no `localStorage`.
+
+- **Relatórios:** Validações de reduções estatísticas (`reduce`) para faturamento líquido e patrimônio de estoque.
+
+## 🤖 Integração Contínua (CI/CD via GitHub Actions)
+O projeto conta com uma esteira de automação de qualidade implementada por meio de workflows do GitHub Actions (`.github/workflows/ci.yml`).
+
+A pipeline executa de forma paralela em ambientes virtuais isolados (`ubuntu-latest`) sempre que um evento de `push` ou `pull_request` é disparado nas branch principal (main).
+
+```plaintext
+                    ┌───────────────┐
+                    │  Git Push /   │
+                    │ Pull Request  │
+                    └───────┬───────┘
+                            │
+            ┌───────────────┴───────────────┐
+            ▼                               ▼
+    ┌───────────────┐               ┌───────────────┐
+    │ Job 1: Backend│               │Job 2: Frontend│
+    ├───────────────┤               ├───────────────┤
+    │ Node.js v20   │               │ Node.js v20   │
+    │ npm install   │               │ npm install   │
+    │ Jest Tests    │               │ Vitest Tests  │
+    │ Cobertura >80%│               │ Cobertura >80%│
+    └───────┬───────┘               └───────┬───────┘
+            │                               │
+            └───────────────┬───────────────┘
+                            ▼
+                ┌───────────────────────┐
+                │ Homologado para Deploy│
+                │     (Sinal Verde)     │
+                └───────────────────────┘
+```
+Se qualquer teste falhar ou se a cobertura de código cair abaixo dos limites estabelecidos, a esteira bloqueia a alteração imediatamente, blindando o ambiente produtivo contra quebras lógicas.
 
 ### Integrações:
 
@@ -276,6 +341,9 @@ A aplicação disponibiliza uma API RESTful completa para comunicação entre o 
 - [x] Documentar a API utilizando Swagger / OpenAPI 3.0.
 - [x] Desenvolver Dashboard de Relatórios (Vendas do mês, produtos mais vendidos).
 - [x] Deploy do Monolito em nuvem (Ex: Render ou Railway).
+- [x] [Novo] Criação de suítes de testes unitários no Backend (Services, Controllers e Middlewares via Jest).
+- [x] [Novo] Criação de testes de UX, comportamento e acessibilidade no Frontend (Vitest e RTL).
+- [x] [Novo] Configuração de pipeline paralela automatizada no GitHub Actions para validação contínua de builds.
 
 ---
 Desenvolvido com 💜 pela equipe de TI da Borbolêlalá.
