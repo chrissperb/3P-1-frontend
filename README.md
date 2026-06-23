@@ -285,6 +285,18 @@ Os testes cobrem caminhos felizes e tratamentos de exceção complexos sem polui
 
 - **Controllers:** Testes simulados isolando as respostas HTTP apropriadas (200, 201, 400, 404, 500) com base em injeções de respostas controladas dos Mocks.
 
+A execução dos testes de backend pode ser feita através do comando:
+```bash
+# Iniciar Servidor (Disponível em http://localhost:3000)
+npm run dev
+
+# Executar Testes Unitários do Backend
+npm test
+
+# Verificar Relatório Completo de Cobertura de Código (Jest)
+npm run test:coverage
+```
+
 ### 🎨 Testes de Frontend (React Testing Library + Vitest)
 Os testes de interface simulam interações reais do usuário, validando regras de experiência de usuário (UX) e acessibilidade (A11y):
 
@@ -295,6 +307,18 @@ Os testes de interface simulam interações reais do usuário, validando regras 
 - **Login:** Preenchimento de inputs vinculados via rótulos acessíveis (`htmlFor`) e teste do armazenamento seguro do token no `localStorage`.
 
 - **Relatórios:** Validações de reduções estatísticas (`reduce`) para faturamento líquido e patrimônio de estoque.
+
+A execução dos testes de frontend pode ser feita através do comando:
+```bash
+# Iniciar Interface (Disponível na porta fornecida pelo Vite, ex: http://localhost:5173)
+npm run dev
+
+# Executar Testes Unitários do Backend
+npm test
+
+# Verificar Relatório Completo de Cobertura de Código (Jest)
+npm run test:coverage
+```
 
 ## 🤖 Integração Contínua (CI/CD via GitHub Actions)
 O projeto conta com uma esteira de automação de qualidade implementada por meio de workflows do GitHub Actions (`.github/workflows/ci.yml`).
