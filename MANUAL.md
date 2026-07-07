@@ -123,7 +123,7 @@ Painel gerencial para acompanhar a saúde financeira da loja.
 
 - **Ver Itens**: Clica no botão para expandir e ver exatamente o que o cliente comprou.
 
-![Tela de relatórios e gestão de pedidos do sistema.](/views/images/image_manual_4.png)!
+![Tela de relatórios e gestão de pedidos do sistema.](/views/images/image_manual_4.png)
 
 ## 💡 4. Exemplos Práticos (Para usuários não técnicos)
 ### Cenário de Exemplo: Cliente quer comprar pelo WhatsApp e pediu envio pelos Correios.
@@ -188,7 +188,7 @@ Siga os passos abaixo para configurar o ambiente de desenvolvimento.
    ```env
    MONGO_URI=mongodb://localhost:27017/borbolelala
    PORT=3001
-   SECRET_KEY=sua_senha_super_secreta_aqui
+   SECRET_KEY=sua_senha_aqui
    FRONTEND_URL=http://localhost:3000
    ```
 
@@ -246,4 +246,4 @@ Para testes, utilize uma das contas abaixo. O sistema cria automaticamente um us
 - **Backend**: Configure o servidor para rodar com `npm run start` (modo produção). Use um gerenciador de processos como o PM2 para garantir que ele rode em segundo plano e reinicie em caso de falha.
 - **Frontend**: Para produção, faça o build do projeto (`npm run build`) e sirva os arquivos estáticos usando um servidor web como o Nginx ou Apache.
 - **Segurança**: Nunca use a chave secreta (`SECRET_KEY`) padrão em produção. Gere uma chave forte e aleatória.
-- **Integração Correios**: Configure a variável de ambiente `SUPER_FRETE_TOKEN` com o token fornecido pelo SuperFrete para ativar o cálculo de fretes reais.
+- **Integração SuperFrete**: Configure a variável de ambiente `SUPER_FRETE_TOKEN` com o token fornecido pelo SuperFrete para ativar o cálculo de fretes reais.
