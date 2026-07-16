@@ -29,43 +29,43 @@ export default function Login() {
             } else {
                 setErro(dados.mensagem || 'Erro ao fazer login.');
             }
-        } catch (error) {
+        } catch {
             setErro('Erro de conexão com o servidor.');
         }
     };
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-            <div style={{ backgroundColor: '#fff', padding: '40px', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', width: '100%', maxWidth: '400px' }}>
-                <h2 style={{ textAlign: 'center', color: '#9b59b6', marginBottom: '20px' }}>🦋 Borbolêlalá</h2>
-                <h3 style={{ textAlign: 'center', color: '#34495e', marginTop: 0 }}>Acesso ao Sistema</h3>
+        <div className="login-container">
+            <div className="login-card">
+                <h2 className="login-title">🦋 Borbolêlalá</h2>
+                <h3 className="login-subtitle">Acesso ao Sistema</h3>
 
-                {erro && <p style={{ color: '#e74c3c', backgroundColor: '#fadbd8', padding: '10px', borderRadius: '4px', textAlign: 'center' }}>{erro}</p>}
+                {erro && <p className="error-banner">{erro}</p>}
 
-                <form onSubmit={fazerLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    <div>
-                        <label htmlFor="email" style={{ display: 'block', marginBottom: '5px', color: '#7f8c8d' }}>E-mail</label>
+                <form onSubmit={fazerLogin} className="login-form">
+                    <div className="form-group">
+                        <label htmlFor="email" className="login-label">E-mail</label>
                         <input
                             id="email"
                             type="email"
                             required
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #bdc3c7' }}
+                            className="login-input"
                         />
                     </div>
-                    <div>
-                        <label htmlFor="senha" style={{ display: 'block', marginBottom: '5px', color: '#7f8c8d' }}>Senha</label>
+                    <div className="form-group">
+                        <label htmlFor="senha" className="login-label">Senha</label>
                         <input
                             id="senha"
                             type="password"
                             required
                             value={senha}
                             onChange={(e) => setSenha(e.target.value)}
-                            style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #bdc3c7' }}
+                            className="login-input"
                         />
                     </div>
-                    <button type="submit" style={{ padding: '12px', backgroundColor: '#3498db', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px' }}>
+                    <button type="submit" className="login-button">
                         Entrar
                     </button>
                 </form>

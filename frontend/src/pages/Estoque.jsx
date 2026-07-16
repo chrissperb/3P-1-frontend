@@ -105,14 +105,14 @@ export default function Estoque() {
     );
 
     return (
-        <div>
+        <div className="estoque-container">
             {/* CABEÇALHO */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 style={{ color: '#2c3e50', margin: 0 }}>📦 Gestão de Estoque</h2>
+            <div className="estoque-header">
+                <h2>📦 Gestão de Estoque</h2>
                 {!exibirForm && (
                     <button
                         onClick={prepararNovoProduto}
-                        style={{ backgroundColor: '#9b59b6', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                        className="btn-novo-produto"
                     >
                         + Novo Produto
                     </button>
@@ -121,7 +121,7 @@ export default function Estoque() {
 
             {/* MENSAGEM DE ERRO */}
             {erro && (
-                <div style={{ backgroundColor: '#fadbd8', color: '#e74c3c', padding: '10px', borderRadius: '4px', marginBottom: '15px' }}>
+                <div className="estoque-erro">
                     {erro}
                 </div>
             )}
@@ -138,60 +138,60 @@ export default function Estoque() {
             ) : (
                 // SE FALSO: MOSTRA A BARRA DE BUSCA E A SUA TABELA
                 <>
-                    <div style={{ marginBottom: '20px' }}>
+                    <div className="busca-container">
                         <input
                             type="text"
                             placeholder="🔍 Procurar produto pelo nome..."
                             value={busca}
                             onChange={(e) => setBusca(e.target.value)}
-                            style={{ padding: '12px', width: '100%', maxWidth: '400px', borderRadius: '6px', border: '1px solid #bdc3c7', fontSize: '1rem' }}
+                            className="busca-input"
                         />
                     </div>
 
-                    <div style={{ backgroundColor: '#fff', borderRadius: '8px', padding: '15px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', overflowX: 'auto' }}>
+                    <div className="tabela-container">
                         {carregando ? (
-                            <p style={{ textAlign: 'center', color: '#7f8c8d' }}>A carregar produtos...</p>
+                            <p className="carregando-texto">A carregar produtos...</p>
                         ) : (
-                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                            <table className="estoque-tabela">
                                 <thead>
-                                    <tr style={{ borderBottom: '2px solid #ecf0f1', color: '#9b59b6' }}>
-                                        <th style={{ padding: '12px' }}>ID</th>
-                                        <th style={{ padding: '12px' }}>Nome</th>
-                                        <th style={{ padding: '12px' }}>Categoria</th>
-                                        <th style={{ padding: '12px' }}>Estoque</th>
-                                        <th style={{ padding: '12px' }}>Preço Venda</th>
-                                        <th style={{ padding: '12px', textAlign: 'center' }}>Ações</th>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nome</th>
+                                        <th>Categoria</th>
+                                        <th>Estoque</th>
+                                        <th>Preço Venda</th>
+                                        <th className="text-center">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {produtosFiltrados.length === 0 ? (
                                         <tr>
-                                            <td colSpan="6" style={{ padding: '20px', textAlign: 'center', color: '#e74c3c' }}>
+                                            <td colSpan="6" className="tabela-vazia">
                                                 Nenhum produto encontrado.
                                             </td>
                                         </tr>
                                     ) : (
                                         produtosFiltrados.map(produto => (
-                                            <tr key={produto._id} style={{ borderBottom: '1px solid #ecf0f1' }}>
-                                                <td style={{ padding: '12px', fontWeight: 'bold' }}>{produto.id}</td>
-                                                <td style={{ padding: '12px' }}>{produto.nome}</td>
-                                                <td style={{ padding: '12px', textTransform: 'capitalize' }}>{produto.categoria}</td>
-                                                <td style={{ padding: '12px', color: produto.quantidade > 0 ? '#27ae60' : '#e74c3c', fontWeight: 'bold' }}>
+                                            <tr key={produto._id}>
+                                                <td className="bold">{produto.id}</td>
+                                                <td>{produto.nome}</td>
+                                                <td className="capitalize">{produto.categoria}</td>
+                                                <td className={produto.quantidade > 0 ? 'estoque-status-ok' : 'estoque-status-esgotado'}>
                                                     {produto.quantidade} un
                                                 </td>
-                                                <td style={{ padding: '12px' }}>R$ {produto.precoVenda.toFixed(2)}</td>
+                                                <td>R$ {produto.precoVenda.toFixed(2)}</td>
 
-                                                <td style={{ padding: '12px', textAlign: 'center' }}>
+                                                <td className="text-center">
                                                     <button
                                                         onClick={() => prepararEdicao(produto)}
-                                                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', marginRight: '10px' }}
+                                                        className="btn-acao"
                                                         title="Editar Produto"
                                                     >
                                                         ✏️
                                                     </button>
                                                     <button
                                                         onClick={() => deletarProduto(produto.id, produto.nome)}
-                                                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}
+                                                        className="btn-acao"
                                                         title="Excluir Produto"
                                                     >
                                                         🗑️

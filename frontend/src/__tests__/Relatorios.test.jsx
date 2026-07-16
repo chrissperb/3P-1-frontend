@@ -20,7 +20,22 @@ vi.mock('../components/CardResumo', () => ({
     )
 }));
 
-// 3. Mock do Fetch Global e Variáveis de Ambiente
+// 3. Mock do Recharts para evitar ResizeObserver undefined e erros de renderização
+vi.mock('recharts', () => ({
+    ResponsiveContainer: ({ children }) => <div data-testid="responsive-container">{children}</div>,
+    AreaChart: ({ children }) => <div data-testid="area-chart">{children}</div>,
+    Area: () => <div />,
+    XAxis: () => <div />,
+    YAxis: () => <div />,
+    CartesianGrid: () => <div />,
+    Tooltip: () => <div />,
+    PieChart: ({ children }) => <div data-testid="pie-chart">{children}</div>,
+    Pie: ({ children }) => <div data-testid="pie">{children}</div>,
+    Cell: () => <div />,
+    Legend: () => <div />
+}));
+
+// 4. Mock do Fetch Global e Variáveis de Ambiente
 global.fetch = vi.fn();
 import.meta.env.VITE_API_URL = 'http://localhost:3000';
 
@@ -56,7 +71,10 @@ describe('Componente Relatorios - Testes de Dashboard', () => {
         vi.resetAllMocks();
         localStorage.setItem('token', 'token-valido');
 
-        fetch.mockImplementation((url) => {
+        fetch.mockImplementation((url, options) => {
+            if (options && options.method === 'DELETE') {
+                return Promise.resolve({ ok: true, json: async () => ({ mensagem: 'Excluído com sucesso' }) });
+            }
             if (url.includes('/produtos')) {
                 return Promise.resolve({ ok: true, json: async () => mockProdutos });
             }
@@ -106,7 +124,7 @@ describe('Componente Relatorios - Testes de Dashboard', () => {
 
         expect(screen.getByText(/Detalhes do Pedido/i)).toBeInTheDocument();
         expect(screen.getByText(/2x/i)).toBeInTheDocument();
-        expect(screen.getByText(/Produto A/i)).toBeInTheDocument();
+        expect(screen.getAllByText(/Produto A/i)[0]).toBeInTheDocument();
     });
 
     it('Deve alterar o status de um pedido e disparar um fetch (PUT)', async () => {
@@ -129,20 +147,50 @@ describe('Componente Relatorios - Testes de Dashboard', () => {
         });
     });
 
-    it('Deve alterar os dias do filtro ao clicar nos botões + e -', async () => {
+    it('Deve alterar as datas do filtro ao clicar nos botões rápidos', async () => {
         render(<BrowserRouter><Relatorios /></BrowserRouter>);
         await screen.findByText('Christian');
 
-        expect(screen.getByText('7 Dias')).toBeInTheDocument();
+        const btn30 = screen.getByText('Últimos 30 dias');
+        fireEvent.click(btn30);
 
-        const botaoAumentar = screen.getByText('+');
-        const botaoDiminuir = screen.getByText('-');
-        fireEvent.click(botaoAumentar);
-        expect(screen.getByText('8 Dias')).toBeInTheDocument();
+        expect(btn30).toHaveClass('ativo');
+    });
 
-        fireEvent.click(botaoDiminuir);
-        fireEvent.click(botaoDiminuir);
-        expect(screen.getByText('6 Dias')).toBeInTheDocument();
+    it('Deve alterar as datas do filtro ao preencher os inputs de data', async () => {
+        render(<BrowserRouter><Relatorios /></BrowserRouter>);
+        await screen.findByText('Christian');
+
+        const inputInicial = screen.getByLabelText('Data Inicial');
+        const inputFinal = screen.getByLabelText('Data Final');
+
+        fireEvent.change(inputInicial, { target: { value: '2026-07-01' } });
+        fireEvent.change(inputFinal, { target: { value: '2026-07-10' } });
+
+        expect(inputInicial.value).toBe('2026-07-01');
+        expect(inputFinal.value).toBe('2026-07-10');
+    });
+
+    it('Deve excluir um pedido e disparar um fetch (DELETE)', async () => {
+        const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+        render(<BrowserRouter><Relatorios /></BrowserRouter>);
+        await screen.findByText('Christian');
+
+        const botoesDeletar = screen.getAllByRole('button', { name: /excluir/i });
+        fireEvent.click(botoesDeletar[0]);
+
+        expect(confirmSpy).toHaveBeenCalled();
+        await waitFor(() => {
+            expect(fetch).toHaveBeenCalledWith(
+                expect.stringContaining('/pedidos/ped1'),
+                expect.objectContaining({
+                    method: 'DELETE'
+                })
+            );
+        });
+
+        confirmSpy.mockRestore();
     });
 
     it('Deve redirecionar para o login se o usuário não possuir token', async () => {
