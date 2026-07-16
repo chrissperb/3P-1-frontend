@@ -1,13 +1,43 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect, useMemo, Fragment } from 'react';
 import CardResumo from '../components/CardResumo';
 import { useNavigate } from 'react-router-dom';
+import {
+    ResponsiveContainer,
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    PieChart,
+    Pie,
+    Cell,
+    Legend
+} from 'recharts';
+
+const formatarDataInput = (data) => {
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const dia = String(data.getDate()).padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
+};
 
 export default function Relatorios() {
-    const [dias, setDias] = useState(7);
-    const [valorEstoque, setValorEstoque] = useState(0);
+    const [todosProdutos, setTodosProdutos] = useState([]);
+    const [todosPedidos, setTodosPedidos] = useState([]);
     const [carregando, setCarregando] = useState(true);
-    const [listaPedidos, setListaPedidos] = useState([]);
     const [pedidoExpandido, setPedidoExpandido] = useState(null);
+
+    // Filtro rápido e datas customizadas
+    const [filtroRapido, setFiltroRapido] = useState('7d');
+    const [dataInicial, setDataInicial] = useState(() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 7);
+        return formatarDataInput(d);
+    });
+    const [dataFinal, setDataFinal] = useState(() => {
+        return formatarDataInput(new Date());
+    });
 
     const navigate = useNavigate();
 
@@ -29,20 +59,8 @@ export default function Relatorios() {
                     const produtos = await resProdutos.json();
                     const pedidos = await resPedidos.json();
 
-                    const totalPatrimonio = produtos.reduce((acc, p) => acc + (p.quantidade * (p.preco || 0)), 0);
-                    setValorEstoque(totalPatrimonio);
-
-                    const dataLimite = new Date();
-                    dataLimite.setDate(dataLimite.getDate() - dias);
-
-                    const pedidosNoPeriodo = pedidos.filter(pedido => {
-                        const dataPedido = new Date(pedido.createdAt);
-                        return dataPedido >= dataLimite;
-                    });
-
-                    const pedidosOrdenados = pedidosNoPeriodo.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-                    setListaPedidos(pedidosOrdenados);
+                    setTodosProdutos(produtos);
+                    setTodosPedidos(pedidos);
                 }
             } catch (erro) {
                 console.error("Erro ao buscar dados:", erro);
@@ -52,7 +70,41 @@ export default function Relatorios() {
         };
 
         buscarDadosDoSistema();
-    }, [dias, navigate]);
+    }, [navigate]);
+
+    const aplicarFiltroRapido = (tipo) => {
+        setFiltroRapido(tipo);
+        const fim = new Date();
+        if (tipo === '7d') {
+            const inicio = new Date();
+            inicio.setDate(fim.getDate() - 7);
+            setDataInicial(formatarDataInput(inicio));
+            setDataFinal(formatarDataInput(fim));
+        } else if (tipo === '30d') {
+            const inicio = new Date();
+            inicio.setDate(fim.getDate() - 30);
+            setDataInicial(formatarDataInput(inicio));
+            setDataFinal(formatarDataInput(fim));
+        } else if (tipo === 'mes') {
+            const inicio = new Date(fim.getFullYear(), fim.getMonth(), 1);
+            const ultimoDia = new Date(fim.getFullYear(), fim.getMonth() + 1, 0);
+            setDataInicial(formatarDataInput(inicio));
+            setDataFinal(formatarDataInput(ultimoDia));
+        } else if (tipo === 'todo') {
+            setDataInicial('');
+            setDataFinal('');
+        }
+    };
+
+    const handleDataInicialChange = (e) => {
+        setDataInicial(e.target.value);
+        setFiltroRapido('');
+    };
+
+    const handleDataFinalChange = (e) => {
+        setDataFinal(e.target.value);
+        setFiltroRapido('');
+    };
 
     const atualizarStatusPedido = async (pedidoId, novoStatus) => {
         try {
@@ -64,7 +116,7 @@ export default function Relatorios() {
             });
 
             if (resposta.ok) {
-                setListaPedidos(listaAtual =>
+                setTodosPedidos(listaAtual =>
                     listaAtual.map(pedido =>
                         pedido._id === pedidoId ? { ...pedido, status: novoStatus } : pedido
                     )
@@ -78,12 +130,31 @@ export default function Relatorios() {
         }
     };
 
+    const deletarPedido = async (pedidoId) => {
+        if (!window.confirm("Tem certeza que deseja excluir este pedido definitivamente?")) return;
+        try {
+            const token = localStorage.getItem('token');
+            const resposta = await fetch(import.meta.env.VITE_API_URL + '/pedidos/' + pedidoId, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (resposta.ok) {
+                setTodosPedidos(listaAtual =>
+                    listaAtual.filter(pedido => pedido._id !== pedidoId)
+                );
+            } else {
+                alert("Erro ao excluir o pedido no servidor.");
+            }
+        } catch (erro) {
+            console.error(erro);
+            alert("Erro de conexão ao tentar excluir.");
+        }
+    };
+
     const alternarDetalhes = (id) => {
         setPedidoExpandido(pedidoExpandido === id ? null : id);
     };
-
-    const diminuirDias = () => { if (dias > 1) setDias(dias - 1); };
-    const aumentarDias = () => { setDias(dias + 1); };
 
     const formatarData = (dataString) => {
         if (!dataString) return '--/--/----';
@@ -102,119 +173,493 @@ export default function Relatorios() {
         }
     };
 
-    // CÁLCULO DERIVADO 
-    const pedidosValidos = listaPedidos.filter(pedido => pedido.status !== 'Cancelado');
-    const qtdPedidosValidos = pedidosValidos.length;
-    const totalVendasValidas = pedidosValidos.reduce((acc, p) => acc + p.totalFinal, 0);
+    // Computações em Memória via useMemo
+    const pedidosFiltrados = useMemo(() => {
+        return todosPedidos.filter(pedido => {
+            if (!pedido.createdAt) return false;
+            const dataLocal = new Date(pedido.createdAt);
+            const dataPedidoStr = formatarDataInput(dataLocal);
+            if (dataInicial && dataPedidoStr < dataInicial) return false;
+            if (dataFinal && dataPedidoStr > dataFinal) return false;
+            return true;
+        });
+    }, [todosPedidos, dataInicial, dataFinal]);
+
+    const pedidosOrdenados = useMemo(() => {
+        return [...pedidosFiltrados].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }, [pedidosFiltrados]);
+
+    const valorEstoque = useMemo(() => {
+        return todosProdutos.reduce((acc, p) => acc + (p.quantidade * (p.preco || 0)), 0);
+    }, [todosProdutos]);
+
+    const pedidosValidos = useMemo(() => {
+        return pedidosFiltrados.filter(pedido => pedido.status !== 'Cancelado');
+    }, [pedidosFiltrados]);
+
+    const faturamentoLiquido = useMemo(() => {
+        return pedidosValidos.reduce((acc, p) => acc + (p.totalFinal || 0), 0);
+    }, [pedidosValidos]);
+
+    const totalPedidosValidos = useMemo(() => {
+        return pedidosValidos.length;
+    }, [pedidosValidos]);
+
+    const ticketMedio = useMemo(() => {
+        return totalPedidosValidos > 0 ? (faturamentoLiquido / totalPedidosValidos) : 0;
+    }, [faturamentoLiquido, totalPedidosValidos]);
+
+    // Top Selling (Mais vendidos)
+    const produtosMaisVendidos = useMemo(() => {
+        const vendas = {};
+        pedidosValidos.forEach(pedido => {
+            if (pedido.itens) {
+                pedido.itens.forEach(item => {
+                    const key = item.produtoId || item.nome || 'Desconhecido';
+                    if (!vendas[key]) {
+                        vendas[key] = {
+                            nome: item.nome || `Produto #${item.produtoId}`,
+                            quantidade: 0,
+                            faturamento: 0
+                        };
+                    }
+                    vendas[key].quantidade += item.quantidade || 0;
+                    const subtotal = item.subtotal ? item.subtotal : (item.precoUnitario || 0) * (item.quantidade || 0);
+                    vendas[key].faturamento += subtotal;
+                });
+            }
+        });
+
+        return Object.values(vendas)
+            .sort((a, b) => b.quantidade - a.quantidade)
+            .slice(0, 5);
+    }, [pedidosValidos]);
+
+    // Less Selling (Menos vendidos)
+    const produtosMenosVendidos = useMemo(() => {
+        const vendas = {};
+        todosProdutos.forEach(p => {
+            const key = p._id || p.id || p.nome;
+            if (key) {
+                vendas[key] = {
+                    nome: p.nome,
+                    quantidade: 0,
+                    faturamento: 0
+                };
+            }
+        });
+
+        pedidosValidos.forEach(pedido => {
+            if (pedido.itens) {
+                pedido.itens.forEach(item => {
+                    let key = item.produtoId;
+                    if (!key || !vendas[key]) {
+                        const dbProd = todosProdutos.find(p => p.nome === item.nome);
+                        key = dbProd ? (dbProd._id || dbProd.id) : (item.produtoId || item.nome);
+                    }
+                    if (!vendas[key]) {
+                        vendas[key] = {
+                            nome: item.nome || `Produto #${item.produtoId}`,
+                            quantidade: 0,
+                            faturamento: 0
+                        };
+                    }
+                    vendas[key].quantidade += item.quantidade || 0;
+                    const subtotal = item.subtotal ? item.subtotal : (item.precoUnitario || 0) * (item.quantidade || 0);
+                    vendas[key].faturamento += subtotal;
+                });
+            }
+        });
+
+        return Object.values(vendas)
+            .sort((a, b) => a.quantidade - b.quantidade)
+            .slice(0, 5);
+    }, [pedidosValidos, todosProdutos]);
+
+    // Stock health
+    const saudeDoEstoque = useMemo(() => {
+        return todosProdutos.filter(p => p.quantidade <= 5);
+    }, [todosProdutos]);
+
+    // Trend chart data
+    const obterDatasNoIntervalo = (inicioStr, fimStr) => {
+        const datas = [];
+        if (!inicioStr || !fimStr) {
+            if (todosPedidos.length === 0) return [];
+            const datasPedidos = todosPedidos
+                .map(p => p.createdAt ? p.createdAt.substring(0, 10) : null)
+                .filter(Boolean);
+            if (datasPedidos.length === 0) return [];
+            datasPedidos.sort();
+            inicioStr = datasPedidos[0];
+            fimStr = datasPedidos[datasPedidos.length - 1];
+        }
+
+        let dataAtual = new Date(inicioStr + 'T00:00:00');
+        const dataFim = new Date(fimStr + 'T00:00:00');
+
+        if (isNaN(dataAtual) || isNaN(dataFim)) return [];
+
+        let count = 0;
+        while (dataAtual <= dataFim && count < 366) {
+            datas.push(formatarDataInput(dataAtual));
+            dataAtual.setDate(dataAtual.getDate() + 1);
+            count++;
+        }
+        return datas;
+    };
+
+    const dadosTendencia = useMemo(() => {
+        const datas = obterDatasNoIntervalo(dataInicial, dataFinal);
+
+        const faturamentoPorDia = {};
+        datas.forEach(d => {
+            faturamentoPorDia[d] = 0;
+        });
+
+        pedidosValidos.forEach(pedido => {
+            if (!pedido.createdAt) return;
+            const dataLocal = new Date(pedido.createdAt);
+            const dia = formatarDataInput(dataLocal);
+            if (faturamentoPorDia[dia] !== undefined) {
+                faturamentoPorDia[dia] += pedido.totalFinal || 0;
+            } else if (!dataInicial || !dataFinal) {
+                faturamentoPorDia[dia] = (faturamentoPorDia[dia] || 0) + (pedido.totalFinal || 0);
+            }
+        });
+
+        return Object.keys(faturamentoPorDia).sort().map(dia => {
+            const partes = dia.split('-');
+            const diaFormatado = partes.length === 3 ? `${partes[2]}/${partes[1]}` : dia;
+            return {
+                dataRaw: dia,
+                data: diaFormatado,
+                Faturamento: Number(faturamentoPorDia[dia].toFixed(2))
+            };
+        });
+    }, [pedidosValidos, dataInicial, dataFinal, todosPedidos]);
+
+    // Status chart data
+    const dadosStatus = useMemo(() => {
+        const statusContagem = {
+            Pendente: 0,
+            Pago: 0,
+            Enviado: 0,
+            Entregue: 0,
+            Cancelado: 0
+        };
+
+        pedidosFiltrados.forEach(pedido => {
+            const status = pedido.status || 'Pago';
+            if (statusContagem[status] !== undefined) {
+                statusContagem[status]++;
+            } else {
+                statusContagem[status] = 1;
+            }
+        });
+
+        const cores = {
+            Pendente: '#f1c40f',
+            Pago: '#27ae60',
+            Enviado: '#3498db',
+            Entregue: '#1abc9c',
+            Cancelado: '#e74c3c'
+        };
+
+        return Object.keys(statusContagem)
+            .map(status => ({
+                name: status,
+                value: statusContagem[status],
+                color: cores[status] || '#7f8c8d'
+            }))
+            .filter(item => item.value > 0);
+    }, [pedidosFiltrados]);
 
     return (
-        <div>
-            {/* CABEÇALHO E CARDS */}
-            <div style={{ marginBottom: '30px' }}>
-                <h2 style={{ color: '#2c3e50', margin: '0 0 5px 0' }}>📊 Dashboard e Resultados</h2>
-                <p style={{ color: '#7f8c8d', margin: 0 }}>Acompanhe o desempenho da Borbolêlalá em tempo real.</p>
+        <div className="relatorios-container">
+            {/* CABEÇALHO */}
+            <div className="relatorios-header">
+                <h2 className="relatorios-titulo">📊 Dashboard e Resultados</h2>
+                <p className="relatorios-subtitulo">Acompanhe o desempenho da Borbolêlalá em tempo real.</p>
             </div>
 
-            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '30px' }}>
-                <CardResumo titulo="Valor em Estoque (Custo)" valor={carregando ? '...' : `R$ ${valorEstoque.toFixed(2)}`} corBorda="#3498db" />
-                <CardResumo titulo={`Faturamento Líquido (${dias} dias)`} valor={carregando ? '...' : `R$ ${totalVendasValidas.toFixed(2)}`} corBorda="#2ecc71" />
-                <CardResumo titulo={`Vendas Válidas (${dias} dias)`} valor={carregando ? '...' : qtdPedidosValidos} corBorda="#f1c40f" />
-            </div>
+            {/* PAINEL DE FILTROS */}
+            <div className="painel-filtros">
+                <h3 className="painel-filtros-titulo">⚙️ Configurar Período de Análise</h3>
+                <div className="filtros-conteudo">
+                    <div className="botoes-rapidos">
+                        <button
+                            onClick={() => aplicarFiltroRapido('7d')}
+                            className={`btn-filtro-rapido ${filtroRapido === '7d' ? 'ativo' : ''}`}
+                        >
+                            Últimos 7 dias
+                        </button>
+                        <button
+                            onClick={() => aplicarFiltroRapido('30d')}
+                            className={`btn-filtro-rapido ${filtroRapido === '30d' ? 'ativo' : ''}`}
+                        >
+                            Últimos 30 dias
+                        </button>
+                        <button
+                            onClick={() => aplicarFiltroRapido('mes')}
+                            className={`btn-filtro-rapido ${filtroRapido === 'mes' ? 'ativo' : ''}`}
+                        >
+                            Este Mês
+                        </button>
+                        <button
+                            onClick={() => aplicarFiltroRapido('todo')}
+                            className={`btn-filtro-rapido ${filtroRapido === 'todo' ? 'ativo' : ''}`}
+                        >
+                            Todo o Período
+                        </button>
+                    </div>
 
-            {/* CONTADOR DE DIAS */}
-            <div style={{ padding: '20px', backgroundColor: '#ffffff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', display: 'inline-block' }}>
-                <h3 style={{ margin: '0 0 15px 0', fontSize: '1rem', color: '#7f8c8d' }}>⚙️ Configurar Período de Análise</h3>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <button onClick={diminuirDias} style={{ padding: '8px 20px', fontSize: '1.5rem', cursor: 'pointer', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px' }}>-</button>
-                    <span style={{ fontSize: '1.2rem', fontWeight: 'bold', minWidth: '80px', textAlign: 'center', color: '#2c3e50' }}>{dias} {dias === 1 ? 'Dia' : 'Dias'}</span>
-                    <button onClick={aumentarDias} style={{ padding: '8px 20px', fontSize: '1.5rem', cursor: 'pointer', backgroundColor: '#2ecc71', color: 'white', border: 'none', borderRadius: '4px' }}>+</button>
+                    <div className="filtros-datas">
+                        <div className="campo-data">
+                            <label htmlFor="dataInicial">Data Inicial</label>
+                            <input
+                                type="date"
+                                id="dataInicial"
+                                value={dataInicial}
+                                onChange={handleDataInicialChange}
+                                className="input-data"
+                            />
+                        </div>
+                        <span className="divisor-datas">até</span>
+                        <div className="campo-data">
+                            <label htmlFor="dataFinal">Data Final</label>
+                            <input
+                                type="date"
+                                id="dataFinal"
+                                value={dataFinal}
+                                onChange={handleDataFinalChange}
+                                className="input-data"
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* TABELA DE PEDIDOS */}
-            <div style={{ marginTop: '30px', backgroundColor: '#fff', borderRadius: '8px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                <h3 style={{ margin: '0 0 20px 0', color: '#2c3e50', borderBottom: '2px solid #ecf0f1', paddingBottom: '10px' }}>
-                    📋 Histórico de Vendas (Últimos {dias} dias)
+            {/* CARDS RESUMO */}
+            <div className="dashboard-cards">
+                <CardResumo titulo="Valor em Estoque (Custo)" valor={carregando ? '...' : `R$ ${valorEstoque.toFixed(2)}`} corBorda="#3498db" />
+                <CardResumo titulo="Faturamento Líquido" valor={carregando ? '...' : `R$ ${faturamentoLiquido.toFixed(2)}`} corBorda="#2ecc71" />
+                <CardResumo titulo="Vendas Válidas" valor={carregando ? '...' : totalPedidosValidos} corBorda="#f1c40f" />
+                <CardResumo titulo="Ticket Médio" valor={carregando ? '...' : `R$ ${ticketMedio.toFixed(2)}`} corBorda="#9b59b6" />
+            </div>
+
+            {/* GRÁFICOS */}
+            {!carregando && (
+                <div className="dashboard-secao-graficos">
+                    <div className="card-grafico">
+                        <h4 className="card-grafico-titulo">📈 Tendência de Faturamento Líquido</h4>
+                        <div className="container-grafico">
+                            <ResponsiveContainer width="100%" height={300}>
+                                <AreaChart data={dadosTendencia} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="colorFaturamento" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#2ecc71" stopOpacity={0.8} />
+                                            <stop offset="95%" stopColor="#2ecc71" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                                    <XAxis dataKey="data" stroke="#7f8c8d" fontSize={12} tickLine={false} />
+                                    <YAxis stroke="#7f8c8d" fontSize={12} tickLine={false} axisLine={false} />
+                                    <Tooltip formatter={(value) => [`R$ ${Number(value).toFixed(2)}`, 'Faturamento']} />
+                                    <Area type="monotone" dataKey="Faturamento" stroke="#2ecc71" strokeWidth={2} fillOpacity={1} fill="url(#colorFaturamento)" />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    <div className="card-grafico">
+                        <h4 className="card-grafico-titulo">📊 Distribuição por Status</h4>
+                        <div className="container-grafico">
+                            <ResponsiveContainer width="100%" height={300}>
+                                <PieChart>
+                                    <Pie
+                                        data={dadosStatus}
+                                        cx="50%"
+                                        cy="45%"
+                                        innerRadius={60}
+                                        outerRadius={80}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                    >
+                                        {dadosStatus.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip formatter={(value) => [`${value} pedido(s)`, 'Quantidade']} />
+                                    <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* RANKINGS E LISTAS */}
+            {!carregando && (
+                <div className="dashboard-secao-listas">
+                    <div className="card-lista">
+                        <h4 className="card-lista-titulo">🔥 Produtos Mais Vendidos</h4>
+                        {produtosMaisVendidos.length === 0 ? (
+                            <p className="lista-vazia">Nenhuma venda registrada no período.</p>
+                        ) : (
+                            <ul className="lista-itens">
+                                {produtosMaisVendidos.map((prod, idx) => (
+                                    <li key={idx} className="lista-item lista-item-top">
+                                        <div className="item-info">
+                                            <span className="item-nome" title={prod.nome}>{prod.nome}</span>
+                                            <span className="item-detalhe">{prod.quantidade} unid. vendidas</span>
+                                        </div>
+                                        <div className="item-valores">
+                                            <span className="item-valor-destaque">R$ {prod.faturamento.toFixed(2)}</span>
+                                            <span className="item-valor-secundario">Total</span>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+
+                    <div className="card-lista">
+                        <h4 className="card-lista-titulo">❄️ Menos Vendidos / Sem Vendas</h4>
+                        {produtosMenosVendidos.length === 0 ? (
+                            <p className="lista-vazia">Nenhum produto cadastrado.</p>
+                        ) : (
+                            <ul className="lista-itens">
+                                {produtosMenosVendidos.map((prod, idx) => (
+                                    <li key={idx} className="lista-item lista-item-less">
+                                        <div className="item-info">
+                                            <span className="item-nome" title={prod.nome}>{prod.nome}</span>
+                                            <span className="item-detalhe">{prod.quantidade} unid. vendidas</span>
+                                        </div>
+                                        <div className="item-valores">
+                                            <span className="item-valor-destaque" style={{ color: '#e74c3c' }}>R$ {prod.faturamento.toFixed(2)}</span>
+                                            <span className="item-valor-secundario">Total</span>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+
+                    <div className="card-lista">
+                        <h4 className="card-lista-titulo">⚠️ Alerta de Estoque Baixo</h4>
+                        {saudeDoEstoque.length === 0 ? (
+                            <p className="lista-vazia" style={{ color: '#27ae60' }}>Todos os produtos com estoque saudável!</p>
+                        ) : (
+                            <ul className="lista-itens">
+                                {saudeDoEstoque.map((prod, idx) => (
+                                    <li key={idx} className="lista-item lista-item-alerta">
+                                        <div className="item-info">
+                                            <span className="item-nome" title={prod.nome}>{prod.nome}</span>
+                                            <span className="item-detalhe">Estoque físico atual</span>
+                                        </div>
+                                        <div className="item-valores">
+                                            <span className="item-valor-destaque" style={{ color: '#e74c3c' }}>{prod.quantidade} unid.</span>
+                                            <span className="item-valor-secundario">Restantes</span>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* TABELA DE HISTÓRICO DE PEDIDOS */}
+            <div className="tabela-pedidos-container">
+                <h3 className="tabela-pedidos-titulo">
+                    📋 Histórico de Vendas
                 </h3>
 
                 {carregando ? (
-                    <p style={{ textAlign: 'center', color: '#7f8c8d' }}>A carregar histórico...</p>
-                ) : listaPedidos.length === 0 ? (
-                    <p style={{ textAlign: 'center', color: '#7f8c8d', padding: '20px 0' }}>Nenhuma venda registada neste período.</p>
+                    <p className="historico-mensagem">A carregar histórico...</p>
+                ) : pedidosFiltrados.length === 0 ? (
+                    <p className="historico-mensagem vazia">Nenhuma venda registada neste período.</p>
                 ) : (
-                    <div style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <div className="tabela-pedidos-wrapper">
+                        <table className="tabela-pedidos">
                             <thead>
-                                <tr style={{ borderBottom: '2px solid #ecf0f1', color: '#9b59b6' }}>
-                                    <th style={{ padding: '12px' }}>Data / Hora</th>
-                                    <th style={{ padding: '12px' }}>Cliente</th>
-                                    <th style={{ padding: '12px', textAlign: 'center' }}>Resumo</th>
-                                    <th style={{ padding: '12px' }}>Total</th>
-                                    <th style={{ padding: '12px' }}>Status</th>
+                                <tr>
+                                    <th>Data / Hora</th>
+                                    <th>Cliente</th>
+                                    <th className="text-center">Resumo</th>
+                                    <th>Total</th>
+                                    <th>Status / Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {listaPedidos.map(pedido => {
+                                {pedidosOrdenados.map(pedido => {
                                     const estilo = obterEstiloStatus(pedido.status || 'Pago');
                                     const isCancelado = pedido.status === 'Cancelado';
 
                                     return (
                                         <Fragment key={pedido._id}>
-                                            <tr style={{
-                                                borderBottom: '1px solid #f9f9f9',
-                                                backgroundColor: pedidoExpandido === pedido._id ? '#fdf8fa' : 'transparent',
-                                                opacity: isCancelado ? 0.6 : 1
-                                            }}>
-                                                <td style={{ padding: '12px', fontSize: '0.9rem', color: '#7f8c8d' }}>
+                                            <tr className={`linha-pedido ${pedidoExpandido === pedido._id ? 'expandido' : ''} ${isCancelado ? 'cancelado' : ''}`}>
+                                                <td>
                                                     {formatarData(pedido.createdAt)}
                                                 </td>
-                                                <td style={{ padding: '12px', fontWeight: 'bold', color: '#34495e', textDecoration: isCancelado ? 'line-through' : 'none' }}>
+                                                <td>
                                                     {pedido.cliente || 'Consumidor Final'}
                                                 </td>
-                                                <td style={{ padding: '12px', textAlign: 'center' }}>
-                                                    <span style={{ color: '#7f8c8d', marginRight: '10px' }}>
+                                                <td>
+                                                    <span>
                                                         {pedido.itens ? pedido.itens.length : 0} item(ns)
                                                     </span>
-                                                    <button onClick={() => alternarDetalhes(pedido._id)} style={{ backgroundColor: '#9b59b6', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '0.8rem', cursor: 'pointer' }}>
+                                                    <button onClick={() => alternarDetalhes(pedido._id)} className="btn-ver-itens">
                                                         {pedidoExpandido === pedido._id ? '▲ Ocultar' : '▼ Ver Itens'}
                                                     </button>
                                                 </td>
-                                                <td style={{ padding: '12px', color: isCancelado ? '#e74c3c' : '#27ae60', fontWeight: 'bold' }}>
+                                                <td>
                                                     R$ {pedido.totalFinal.toFixed(2)}
                                                 </td>
-                                                <td style={{ padding: '12px' }}>
-                                                    <select
-                                                        value={pedido.status || 'Pago'}
-                                                        onChange={(e) => atualizarStatusPedido(pedido._id, e.target.value)}
-                                                        style={{ backgroundColor: estilo.bg, color: estilo.cor, border: `1px solid ${estilo.cor}`, padding: '5px 10px', borderRadius: '20px', fontWeight: 'bold', cursor: 'pointer', outline: 'none' }}
-                                                    >
-                                                        <option value="Pendente">Pendente</option>
-                                                        <option value="Pago">Pago</option>
-                                                        <option value="Enviado">Enviado</option>
-                                                        <option value="Entregue">Entregue</option>
-                                                        <option value="Cancelado">Cancelado</option>
-                                                    </select>
+                                                <td>
+                                                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                        <select
+                                                            value={pedido.status || 'Pago'}
+                                                            onChange={(e) => atualizarStatusPedido(pedido._id, e.target.value)}
+                                                            className="status-select"
+                                                            style={{ backgroundColor: estilo.bg, color: estilo.cor, border: `1px solid ${estilo.cor}` }}
+                                                        >
+                                                            <option value="Pendente">Pendente</option>
+                                                            <option value="Pago">Pago</option>
+                                                            <option value="Enviado">Enviado</option>
+                                                            <option value="Entregue">Entregue</option>
+                                                            <option value="Cancelado">Cancelado</option>
+                                                        </select>
+                                                        <button
+                                                            onClick={() => deletarPedido(pedido._id)}
+                                                            className="btn-deletar-pedido"
+                                                            title="Excluir Pedido"
+                                                        >
+                                                            Excluir
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
 
                                             {pedidoExpandido === pedido._id && (
-                                                <tr style={{ backgroundColor: '#fdf8fa' }}>
-                                                    <td colSpan="5" style={{ padding: '15px 30px', borderBottom: '2px solid #ecf0f1' }}>
-                                                        <h4 style={{ margin: '0 0 10px 0', color: '#9b59b6', fontSize: '0.9rem' }}>📦 Detalhes do Pedido</h4>
+                                                <tr className="detalhes-linha">
+                                                    <td colSpan="5" className="detalhes-container">
+                                                        <h4 className="detalhes-titulo">📦 Detalhes do Pedido</h4>
                                                         {pedido.itens && pedido.itens.length > 0 ? (
-                                                            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                                                            <ul className="detalhes-itens">
                                                                 {pedido.itens.map((item, idx) => (
-                                                                    <li key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px dashed #bdc3c7', fontSize: '0.9rem', color: '#34495e' }}>
+                                                                    <li key={idx} className="detalhes-item">
                                                                         <span><strong>{item.quantidade}x</strong> {item.nome || `Produto #${item.produtoId}`}</span>
                                                                         <span>R$ {item.subtotal ? item.subtotal.toFixed(2) : (item.precoUnitario * item.quantidade).toFixed(2)}</span>
                                                                     </li>
                                                                 ))}
                                                             </ul>
                                                         ) : (
-                                                            <p style={{ margin: 0, color: '#e74c3c', fontSize: '0.9rem' }}>Nenhum item registrado neste pedido.</p>
+                                                            <p className="detalhes-sem-itens">Nenhum item registrado neste pedido.</p>
                                                         )}
                                                         {pedido.frete > 0 && (
-                                                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', marginTop: '5px', fontSize: '0.9rem', color: '#7f8c8d' }}>
+                                                            <div className="detalhes-frete">
                                                                 <span>Custo de Frete</span>
                                                                 <span>R$ {pedido.frete.toFixed(2)}</span>
                                                             </div>

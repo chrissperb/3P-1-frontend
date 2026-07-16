@@ -38,8 +38,8 @@ export default function FormProduto({ produtoEditado, maxId, aoSalvar, aoCancela
         };
 
         const url = produtoEditado
-            ? `http://localhost:3000/api/produtos/${produtoEditado.id}`
-            : 'http://localhost:3000/api/produtos';
+            ? `${import.meta.env.VITE_API_URL}/produtos/${produtoEditado.id}`
+            : `${import.meta.env.VITE_API_URL}/produtos`;
 
         const method = produtoEditado ? 'PUT' : 'POST';
 
@@ -69,54 +69,54 @@ export default function FormProduto({ produtoEditado, maxId, aoSalvar, aoCancela
     };
 
     return (
-        <div style={{ backgroundColor: '#fff', padding: '25px', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
-            <h3 style={{ color: '#9b59b6', marginTop: 0 }}>
+        <div className="form-produto-card">
+            <h3 className="form-produto-titulo">
                 {produtoEditado ? '✏️ Editar Produto' : '✨ Criar Novo Produto'}
             </h3>
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <form onSubmit={handleSubmit} className="form-produto">
                 {/* LINHA 1: ID e Nome */}
-                <div style={{ display: 'flex', gap: '15px' }}>
-                    <div style={{ flex: '1' }}>
-                        <label style={{ display: 'block', color: '#7f8c8d', marginBottom: '5px' }}>ID</label>
-                        <input type="number" required value={id} onChange={e => setId(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #bdc3c7' }} />
+                <div className="form-linha">
+                    <div className="form-campo flex-1">
+                        <label>ID</label>
+                        <input type="number" required value={id} onChange={e => setId(e.target.value)} className="form-input" />
                     </div>
-                    <div style={{ flex: '3' }}>
-                        <label style={{ display: 'block', color: '#7f8c8d', marginBottom: '5px' }}>Nome da Roupinha</label>
-                        <input type="text" required value={nome} onChange={e => setNome(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #bdc3c7' }} />
+                    <div className="form-campo flex-3">
+                        <label>Nome da Roupinha</label>
+                        <input type="text" required value={nome} onChange={e => setNome(e.target.value)} className="form-input" />
                     </div>
                 </div>
 
                 {/* LINHA 2: Categoria e Estoque */}
-                <div style={{ display: 'flex', gap: '15px' }}>
-                    <div style={{ flex: '2' }}>
-                        <label style={{ display: 'block', color: '#7f8c8d', marginBottom: '5px' }}>Categoria</label>
-                        <input type="text" required value={categoria} onChange={e => setCategoria(e.target.value)} placeholder="Ex: vestido, cueca..." style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #bdc3c7' }} />
+                <div className="form-linha">
+                    <div className="form-campo flex-2">
+                        <label>Categoria</label>
+                        <input type="text" required value={categoria} onChange={e => setCategoria(e.target.value)} placeholder="Ex: vestido, cueca..." className="form-input" />
                     </div>
-                    <div style={{ flex: '1' }}>
-                        <label style={{ display: 'block', color: '#7f8c8d', marginBottom: '5px' }}>Estoque (Qtd)</label>
-                        <input type="number" required min="0" value={quantidade} onChange={e => setQuantidade(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #bdc3c7' }} />
+                    <div className="form-campo flex-1">
+                        <label>Estoque (Qtd)</label>
+                        <input type="number" required min="0" value={quantidade} onChange={e => setQuantidade(e.target.value)} className="form-input" />
                     </div>
                 </div>
 
                 {/* LINHA 3: Custos e Preços */}
-                <div style={{ display: 'flex', gap: '15px' }}>
-                    <div style={{ flex: '1' }}>
-                        <label style={{ display: 'block', color: '#7f8c8d', marginBottom: '5px' }}>Preço de Custo (R$)</label>
-                        <input type="number" required step="0.01" value={preco} onChange={e => setPreco(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #bdc3c7', backgroundColor: '#f9ebea' }} title="Usado para calcular o valor do patrimônio" />
+                <div className="form-linha">
+                    <div className="form-campo flex-1">
+                        <label>Preço de Custo (R$)</label>
+                        <input type="number" required step="0.01" value={preco} onChange={e => setPreco(e.target.value)} className="form-input form-input-custo" title="Usado para calcular o valor do patrimônio" />
                     </div>
-                    <div style={{ flex: '1' }}>
-                        <label style={{ display: 'block', color: '#7f8c8d', marginBottom: '5px' }}>Preço de Venda (R$)</label>
-                        <input type="number" required step="0.01" value={precoVenda} onChange={e => setPrecoVenda(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #bdc3c7', backgroundColor: '#eafaf1' }} title="Preço que o cliente final vai pagar" />
+                    <div className="form-campo flex-1">
+                        <label>Preço de Venda (R$)</label>
+                        <input type="number" required step="0.01" value={precoVenda} onChange={e => setPrecoVenda(e.target.value)} className="form-input form-input-venda" title="Preço que o cliente final vai pagar" />
                     </div>
                 </div>
 
                 {/* BOTÕES */}
-                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                    <button type="submit" disabled={carregando} style={{ flex: '1', padding: '12px', backgroundColor: '#2ecc71', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                <div className="form-botoes">
+                    <button type="submit" disabled={carregando} className="btn-salvar">
                         {carregando ? 'A Salvar...' : '💾 Salvar Produto'}
                     </button>
-                    <button type="button" onClick={aoCancelar} style={{ flex: '1', padding: '12px', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                    <button type="button" onClick={aoCancelar} className="btn-cancelar">
                         Cancelar
                     </button>
                 </div>
