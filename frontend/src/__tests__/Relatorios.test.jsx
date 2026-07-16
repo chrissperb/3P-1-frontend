@@ -249,4 +249,81 @@ describe('Componente Relatorios - Testes de Dashboard', () => {
 
         consoleSpy.mockRestore();
     });
+
+    it('Deve filtrar a lista de vendas por cliente de maneira case-insensitive na busca', async () => {
+        render(<BrowserRouter><Relatorios /></BrowserRouter>);
+        await screen.findByText('Christian');
+
+        const inputBusca = screen.getByPlaceholderText(/Buscar por cliente, produto ou status.../i);
+
+        // Busca por "christian"
+        fireEvent.change(inputBusca, { target: { value: 'christian' } });
+        expect(screen.getByText('Christian')).toBeInTheDocument();
+        expect(screen.queryByText('Maria')).not.toBeInTheDocument();
+
+        // Busca por "maria"
+        fireEvent.change(inputBusca, { target: { value: 'MARIA' } });
+        expect(screen.getByText('Maria')).toBeInTheDocument();
+        expect(screen.queryByText('Christian')).not.toBeInTheDocument();
+    });
+
+    it('Deve filtrar a lista de vendas por produto do item de maneira case-insensitive na busca', async () => {
+        render(<BrowserRouter><Relatorios /></BrowserRouter>);
+        await screen.findByText('Christian');
+
+        const inputBusca = screen.getByPlaceholderText(/Buscar por cliente, produto ou status.../i);
+
+        // Busca por "produto a" que está no item do pedido do Christian
+        fireEvent.change(inputBusca, { target: { value: 'produto a' } });
+        expect(screen.getByText('Christian')).toBeInTheDocument();
+        expect(screen.queryByText('Maria')).not.toBeInTheDocument();
+    });
+
+    it('Deve filtrar a lista de vendas por status do pedido de maneira case-insensitive na busca', async () => {
+        render(<BrowserRouter><Relatorios /></BrowserRouter>);
+        await screen.findByText('Christian');
+
+        const inputBusca = screen.getByPlaceholderText(/Buscar por cliente, produto ou status.../i);
+
+        // Busca por status "Cancelado"
+        fireEvent.change(inputBusca, { target: { value: 'cancelado' } });
+        expect(screen.getByText('Maria')).toBeInTheDocument();
+        expect(screen.queryByText('Christian')).not.toBeInTheDocument();
+    });
+
+    it('Deve mostrar a mensagem de busca vazia se nenhum pedido corresponder', async () => {
+        render(<BrowserRouter><Relatorios /></BrowserRouter>);
+        await screen.findByText('Christian');
+
+        const inputBusca = screen.getByPlaceholderText(/Buscar por cliente, produto ou status.../i);
+
+        // Termo que não casa com nada
+        fireEvent.change(inputBusca, { target: { value: 'Inexistente' } });
+        
+        expect(screen.getByText('Nenhum pedido encontrado para a sua busca')).toBeInTheDocument();
+        expect(screen.queryByText('Christian')).not.toBeInTheDocument();
+        expect(screen.queryByText('Maria')).not.toBeInTheDocument();
+    });
+
+    it('Deve filtrar a lista de vendas por trechos parciais case-insensitive (cliente, produto, status)', async () => {
+        render(<BrowserRouter><Relatorios /></BrowserRouter>);
+        await screen.findByText('Christian');
+
+        const inputBusca = screen.getByPlaceholderText(/Buscar por cliente, produto ou status.../i);
+
+        // 1. Trecho parcial de cliente: "ist" para "Christian"
+        fireEvent.change(inputBusca, { target: { value: 'ist' } });
+        expect(screen.getByText('Christian')).toBeInTheDocument();
+        expect(screen.queryByText('Maria')).not.toBeInTheDocument();
+
+        // 2. Trecho parcial de produto: "uto a" para "Produto A"
+        fireEvent.change(inputBusca, { target: { value: 'uto a' } });
+        expect(screen.getByText('Christian')).toBeInTheDocument();
+        expect(screen.queryByText('Maria')).not.toBeInTheDocument();
+
+        // 3. Trecho parcial de status: "ncel" para "Cancelado"
+        fireEvent.change(inputBusca, { target: { value: 'ncel' } });
+        expect(screen.getByText('Maria')).toBeInTheDocument();
+        expect(screen.queryByText('Christian')).not.toBeInTheDocument();
+    });
 });

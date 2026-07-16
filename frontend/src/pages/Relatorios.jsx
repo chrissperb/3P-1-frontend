@@ -27,6 +27,7 @@ export default function Relatorios() {
     const [todosPedidos, setTodosPedidos] = useState([]);
     const [carregando, setCarregando] = useState(true);
     const [pedidoExpandido, setPedidoExpandido] = useState(null);
+    const [busca, setBusca] = useState('');
 
     // Filtro rápido e datas customizadas
     const [filtroRapido, setFiltroRapido] = useState('7d');
@@ -188,6 +189,27 @@ export default function Relatorios() {
     const pedidosOrdenados = useMemo(() => {
         return [...pedidosFiltrados].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }, [pedidosFiltrados]);
+
+    const pedidosFiltradosPorBusca = useMemo(() => {
+        const query = busca.trim().toLowerCase();
+        if (!query) return pedidosOrdenados;
+
+        return pedidosOrdenados.filter(pedido => {
+            const cliente = (pedido.cliente || 'Consumidor Final').toLowerCase();
+            const status = (pedido.status || 'Pago').toLowerCase();
+            
+            const matchesCliente = cliente.includes(query);
+            const matchesStatus = status.includes(query);
+            
+            const matchesItens = pedido.itens 
+                ? pedido.itens.some(item => 
+                    (item.nome || `Produto #${item.produtoId}`).toLowerCase().includes(query)
+                  )
+                : false;
+
+            return matchesCliente || matchesStatus || matchesItens;
+        });
+    }, [pedidosOrdenados, busca]);
 
     const valorEstoque = useMemo(() => {
         return todosProdutos.reduce((acc, p) => acc + (p.quantidade * (p.preco || 0)), 0);
@@ -572,14 +594,28 @@ export default function Relatorios() {
 
             {/* TABELA DE HISTÓRICO DE PEDIDOS */}
             <div className="tabela-pedidos-container">
-                <h3 className="tabela-pedidos-titulo">
-                    📋 Histórico de Vendas
-                </h3>
+                <div className="tabela-pedidos-header">
+                    <h3 className="tabela-pedidos-titulo">
+                        📋 Histórico de Vendas
+                    </h3>
+                    <div className="busca-pedidos-container">
+                        <span className="busca-icone">🔍</span>
+                        <input
+                            type="text"
+                            placeholder="Buscar por cliente, produto ou status..."
+                            value={busca}
+                            onChange={(e) => setBusca(e.target.value)}
+                            className="busca-pedidos-input"
+                        />
+                    </div>
+                </div>
 
                 {carregando ? (
                     <p className="historico-mensagem">A carregar histórico...</p>
                 ) : pedidosFiltrados.length === 0 ? (
                     <p className="historico-mensagem vazia">Nenhuma venda registada neste período.</p>
+                ) : pedidosFiltradosPorBusca.length === 0 ? (
+                    <p className="historico-mensagem vazia">Nenhum pedido encontrado para a sua busca</p>
                 ) : (
                     <div className="tabela-pedidos-wrapper">
                         <table className="tabela-pedidos">
@@ -593,7 +629,7 @@ export default function Relatorios() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {pedidosOrdenados.map(pedido => {
+                                {pedidosFiltradosPorBusca.map(pedido => {
                                     const estilo = obterEstiloStatus(pedido.status || 'Pago');
                                     const isCancelado = pedido.status === 'Cancelado';
 

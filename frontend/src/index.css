@@ -1208,11 +1208,78 @@ button {
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-.tabela-pedidos-titulo {
-    margin: 0 0 20px 0;
-    color: #2c3e50;
+/* Novo cabeçalho da tabela flexível (mobile-first) */
+.tabela-pedidos-header {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     border-bottom: 2px solid #ecf0f1;
-    padding-bottom: 10px;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    gap: 12px;
+}
+
+.tabela-pedidos-titulo {
+    margin: 0;
+    color: #2c3e50;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/* Container de busca com efeito Glassmorphism */
+.busca-pedidos-container {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    padding: 6px 14px;
+    width: 100%;
+    box-shadow: 0 4px 12px rgba(155, 89, 182, 0.05);
+    transition: all 0.3s ease;
+}
+
+.busca-pedidos-container:focus-within {
+    background: rgba(255, 255, 255, 0.4);
+    border-color: rgba(155, 89, 182, 0.6);
+    box-shadow: 0 4px 16px rgba(155, 89, 182, 0.15);
+}
+
+.busca-icone {
+    margin-right: 8px;
+    font-size: 14px;
+    color: #7f8c8d;
+    user-select: none;
+}
+
+.busca-pedidos-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+    color: #2c3e50;
+}
+
+.busca-pedidos-input::placeholder {
+    color: #95a5a6;
+}
+
+/* Regras de responsividade para desktop */
+@media (min-width: 641px) {
+    .tabela-pedidos-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding-bottom: 10px;
+    }
+    
+    .busca-pedidos-container {
+        max-width: 320px;
+    }
 }
 
 .historico-mensagem {
