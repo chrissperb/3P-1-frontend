@@ -164,12 +164,12 @@ export default function Relatorios() {
 
     const obterEstiloStatus = (status) => {
         switch (status) {
-            case 'Pendente': return { bg: '#fef9e7', cor: '#f1c40f' };
-            case 'Enviado': return { bg: '#ebf5fb', cor: '#3498db' };
-            case 'Entregue': return { bg: '#e8f8f5', cor: '#1abc9c' };
-            case 'Cancelado': return { bg: '#fadbd8', cor: '#e74c3c' };
+            case 'Pendente': return { bg: 'rgba(254, 249, 231, 0.65)', cor: '#f1c40f' };
+            case 'Enviado': return { bg: 'rgba(243, 229, 245, 0.65)', cor: '#9b59b6' };
+            case 'Entregue': return { bg: 'rgba(232, 248, 245, 0.65)', cor: '#1abc9c' };
+            case 'Cancelado': return { bg: 'rgba(252, 228, 236, 0.65)', cor: '#e91e63' };
             case 'Pago':
-            default: return { bg: '#eafaf1', cor: '#27ae60' };
+            default: return { bg: 'rgba(234, 250, 241, 0.65)', cor: '#2ecc71' };
         }
     };
 
@@ -359,11 +359,11 @@ export default function Relatorios() {
         });
 
         const cores = {
-            Pendente: '#f1c40f',
-            Pago: '#27ae60',
-            Enviado: '#3498db',
+            Pendente: '#ffd54f',
+            Pago: '#2ecc71',
+            Enviado: '#9b59b6',
             Entregue: '#1abc9c',
-            Cancelado: '#e74c3c'
+            Cancelado: '#ff4081'
         };
 
         return Object.keys(statusContagem)
@@ -458,15 +458,15 @@ export default function Relatorios() {
                                 <AreaChart data={dadosTendencia} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorFaturamento" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#2ecc71" stopOpacity={0.8} />
-                                            <stop offset="95%" stopColor="#2ecc71" stopOpacity={0} />
+                                            <stop offset="5%" stopColor="#9b59b6" stopOpacity={0.8} />
+                                            <stop offset="95%" stopColor="#fce4ec" stopOpacity={0.05} />
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                                     <XAxis dataKey="data" stroke="#7f8c8d" fontSize={12} tickLine={false} />
                                     <YAxis stroke="#7f8c8d" fontSize={12} tickLine={false} axisLine={false} />
                                     <Tooltip formatter={(value) => [`R$ ${Number(value).toFixed(2)}`, 'Faturamento']} />
-                                    <Area type="monotone" dataKey="Faturamento" stroke="#2ecc71" strokeWidth={2} fillOpacity={1} fill="url(#colorFaturamento)" />
+                                    <Area type="monotone" dataKey="Faturamento" stroke="#9b59b6" strokeWidth={3} fillOpacity={1} fill="url(#colorFaturamento)" />
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>

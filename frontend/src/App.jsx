@@ -24,7 +24,7 @@ export default function App() {
       {exibirMenu && (
         <nav className="main-nav">
           <div className="nav-menu">
-            <h1 className="nav-brand">🦋 Borbolêlalá</h1>
+            <h1 className="nav-brand animated-butterfly">🦋 Borbolêlalá</h1>
             <Link to="/" className="nav-link">PDV</Link>
             <Link to="/estoque" className="nav-link">Estoque</Link>
             <Link to="/relatorios" className="nav-link">Relatórios</Link>
