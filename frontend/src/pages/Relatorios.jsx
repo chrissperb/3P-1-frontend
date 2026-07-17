@@ -545,7 +545,7 @@ export default function Relatorios() {
                                 <span>{maisVendidosAberto ? '▲' : '▼'}</span>
                             </button>
                         </h4>
-                        <div className="accordion-content-dynamic">
+                        <div className={`accordion-content ${maisVendidosAberto ? 'expanded' : ''}`}>
                             <div className="accordion-inner">
                                 {produtosMaisVendidos.length === 0 ? (
                                     <p className="lista-vazia">Nenhuma venda registrada no período.</p>
@@ -582,7 +582,7 @@ export default function Relatorios() {
                                 <span>{menosVendidosAberto ? '▲' : '▼'}</span>
                             </button>
                         </h4>
-                        <div className="accordion-content-dynamic">
+                        <div className={`accordion-content ${menosVendidosAberto ? 'expanded' : ''}`}>
                             <div className="accordion-inner">
                                 {produtosMenosVendidos.length === 0 ? (
                                     <p className="lista-vazia">Nenhum produto cadastrado.</p>
@@ -619,7 +619,7 @@ export default function Relatorios() {
                                 <span>{estoqueBaixoAberto ? '▲' : '▼'}</span>
                             </button>
                         </h4>
-                        <div className="accordion-content-dynamic">
+                        <div className={`accordion-content ${estoqueBaixoAberto ? 'expanded' : ''}`}>
                             <div className="accordion-inner">
                                 {saudeDoEstoque.length === 0 ? (
                                     <p className="lista-vazia" style={{ color: '#27ae60' }}>Todos os produtos com estoque saudável!</p>
