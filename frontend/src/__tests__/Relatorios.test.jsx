@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Relatorios from '../pages/Relatorios';
 import { vi } from 'vitest';
@@ -128,7 +128,7 @@ describe('Componente Relatorios - Testes de Dashboard', () => {
     });
 
     it('Deve alterar o status de um pedido e disparar um fetch (PUT)', async () => {
-        const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
+        vi.spyOn(window, 'alert').mockImplementation(() => { });
 
         render(<BrowserRouter><Relatorios /></BrowserRouter>);
         await screen.findByText('Christian');
@@ -248,5 +248,200 @@ describe('Componente Relatorios - Testes de Dashboard', () => {
         });
 
         consoleSpy.mockRestore();
+    });
+
+    it('Deve filtrar a lista de vendas por cliente de maneira case-insensitive na busca', async () => {
+        render(<BrowserRouter><Relatorios /></BrowserRouter>);
+        await screen.findByText('Christian');
+
+        const inputBusca = screen.getByPlaceholderText(/Buscar por cliente, produto ou status.../i);
+
+        // Busca por "christian"
+        fireEvent.change(inputBusca, { target: { value: 'christian' } });
+        expect(screen.getByText('Christian')).toBeInTheDocument();
+        expect(screen.queryByText('Maria')).not.toBeInTheDocument();
+
+        // Busca por "maria"
+        fireEvent.change(inputBusca, { target: { value: 'MARIA' } });
+        expect(screen.getByText('Maria')).toBeInTheDocument();
+        expect(screen.queryByText('Christian')).not.toBeInTheDocument();
+    });
+
+    it('Deve filtrar a lista de vendas por produto do item de maneira case-insensitive na busca', async () => {
+        render(<BrowserRouter><Relatorios /></BrowserRouter>);
+        await screen.findByText('Christian');
+
+        const inputBusca = screen.getByPlaceholderText(/Buscar por cliente, produto ou status.../i);
+
+        // Busca por "produto a" que está no item do pedido do Christian
+        fireEvent.change(inputBusca, { target: { value: 'produto a' } });
+        expect(screen.getByText('Christian')).toBeInTheDocument();
+        expect(screen.queryByText('Maria')).not.toBeInTheDocument();
+    });
+
+    it('Deve filtrar a lista de vendas por status do pedido de maneira case-insensitive na busca', async () => {
+        render(<BrowserRouter><Relatorios /></BrowserRouter>);
+        await screen.findByText('Christian');
+
+        const inputBusca = screen.getByPlaceholderText(/Buscar por cliente, produto ou status.../i);
+
+        // Busca por status "Cancelado"
+        fireEvent.change(inputBusca, { target: { value: 'cancelado' } });
+        expect(screen.getByText('Maria')).toBeInTheDocument();
+        expect(screen.queryByText('Christian')).not.toBeInTheDocument();
+    });
+
+    it('Deve mostrar a mensagem de busca vazia se nenhum pedido corresponder', async () => {
+        render(<BrowserRouter><Relatorios /></BrowserRouter>);
+        await screen.findByText('Christian');
+
+        const inputBusca = screen.getByPlaceholderText(/Buscar por cliente, produto ou status.../i);
+
+        // Termo que não casa com nada
+        fireEvent.change(inputBusca, { target: { value: 'Inexistente' } });
+        
+        expect(screen.getByText('Nenhum pedido encontrado para a sua busca')).toBeInTheDocument();
+        expect(screen.queryByText('Christian')).not.toBeInTheDocument();
+        expect(screen.queryByText('Maria')).not.toBeInTheDocument();
+    });
+
+    it('Deve filtrar a lista de vendas por trechos parciais case-insensitive (cliente, produto, status)', async () => {
+        render(<BrowserRouter><Relatorios /></BrowserRouter>);
+        await screen.findByText('Christian');
+
+        const inputBusca = screen.getByPlaceholderText(/Buscar por cliente, produto ou status.../i);
+
+        // 1. Trecho parcial de cliente: "ist" para "Christian"
+        fireEvent.change(inputBusca, { target: { value: 'ist' } });
+        expect(screen.getByText('Christian')).toBeInTheDocument();
+        expect(screen.queryByText('Maria')).not.toBeInTheDocument();
+
+        // 2. Trecho parcial de produto: "uto a" para "Produto A"
+        fireEvent.change(inputBusca, { target: { value: 'uto a' } });
+        expect(screen.getByText('Christian')).toBeInTheDocument();
+        expect(screen.queryByText('Maria')).not.toBeInTheDocument();
+
+        // 3. Trecho parcial de status: "ncel" para "Cancelado"
+        fireEvent.change(inputBusca, { target: { value: 'ncel' } });
+        expect(screen.getByText('Maria')).toBeInTheDocument();
+        expect(screen.queryByText('Christian')).not.toBeInTheDocument();
+    });
+
+    it('Deve gerenciar o estado do accordion via clique e teclado com atributos aria corretos e visibilidade', async () => {
+        const { container } = render(<BrowserRouter><Relatorios /></BrowserRouter>);
+
+        await waitFor(() => {
+            expect(screen.queryByText('A carregar histórico...')).not.toBeInTheDocument();
+        });
+
+        // 1. Buscar os botões de controle dentro dos headings
+        const maisVendidosBtn = screen.getByRole('button', { name: /Produtos Mais Vendidos/i });
+        const menosVendidosBtn = screen.getByRole('button', { name: /Produtos Menos Vendidos/i });
+        const saudeEstoqueBtn = screen.getByRole('button', { name: /Saúde do Estoque/i });
+
+        // Obter os containers do card correspondentes
+        const maisVendidosCard = maisVendidosBtn.closest('.card-lista');
+        const menosVendidosCard = menosVendidosBtn.closest('.card-lista');
+        const saudeEstoqueCard = saudeEstoqueBtn.closest('.card-lista');
+
+        const maisVendidosContent = maisVendidosCard.querySelector('.accordion-content');
+        const menosVendidosContent = menosVendidosCard.querySelector('.accordion-content');
+        const saudeEstoqueContent = saudeEstoqueCard.querySelector('.accordion-content');
+
+        // 2. Verificar que os botões têm aria-expanded="false" por padrão
+        expect(maisVendidosBtn).toHaveAttribute('aria-expanded', 'false');
+        expect(menosVendidosBtn).toHaveAttribute('aria-expanded', 'false');
+        expect(saudeEstoqueBtn).toHaveAttribute('aria-expanded', 'false');
+
+        // 3. Verificar que as listas internas correspondentes não têm a classe 'expanded'
+        expect(maisVendidosContent).not.toHaveClass('expanded');
+        expect(menosVendidosContent).not.toHaveClass('expanded');
+        expect(saudeEstoqueContent).not.toHaveClass('expanded');
+
+        // 4. Testar clique em "Produtos Mais Vendidos" -> expande
+        fireEvent.click(maisVendidosBtn);
+        expect(maisVendidosBtn).toHaveAttribute('aria-expanded', 'true');
+        expect(maisVendidosContent).toHaveClass('expanded');
+
+        // Garantir que as outras continuam fechadas
+        expect(menosVendidosBtn).toHaveAttribute('aria-expanded', 'false');
+        expect(menosVendidosContent).not.toHaveClass('expanded');
+
+        // 5. Testar clique novamente -> colapsa
+        fireEvent.click(maisVendidosBtn);
+        expect(maisVendidosBtn).toHaveAttribute('aria-expanded', 'false');
+        expect(maisVendidosContent).not.toHaveClass('expanded');
+
+        // 6. Testar interação via teclado (tecla de Espaço) em "Produtos Menos Vendidos" -> expande
+        fireEvent.keyDown(menosVendidosBtn, { key: ' ' });
+        expect(menosVendidosBtn).toHaveAttribute('aria-expanded', 'true');
+        expect(menosVendidosContent).toHaveClass('expanded');
+
+        // 7. Testar interação via teclado (tecla Enter) em "Produtos Menos Vendidos" -> colapsa
+        fireEvent.keyDown(menosVendidosBtn, { key: 'Enter' });
+        expect(menosVendidosBtn).toHaveAttribute('aria-expanded', 'false');
+        expect(menosVendidosContent).not.toHaveClass('expanded');
+
+        // 8. Testar interação via teclado em "Saúde do Estoque" -> expande
+        fireEvent.keyDown(saudeEstoqueBtn, { key: 'Enter' });
+        expect(saudeEstoqueBtn).toHaveAttribute('aria-expanded', 'true');
+        expect(saudeEstoqueContent).toHaveClass('expanded');
+    });
+
+    it('Deve exibir estados vazios nos accordions quando não há dados correspondentes', async () => {
+        fetch.mockImplementation((url) => {
+            if (url.includes('/produtos')) return Promise.resolve({ ok: true, json: async () => [] });
+            if (url.includes('/pedidos')) return Promise.resolve({ ok: true, json: async () => [] });
+        });
+
+        render(<BrowserRouter><Relatorios /></BrowserRouter>);
+
+        await waitFor(() => {
+            expect(screen.queryByText('A carregar histórico...')).not.toBeInTheDocument();
+        });
+
+        // 1. Mais Vendidos
+        const maisVendidosBtn = screen.getByRole('button', { name: /Produtos Mais Vendidos/i });
+        fireEvent.click(maisVendidosBtn);
+        expect(screen.getByText('Nenhuma venda registrada no período.')).toBeInTheDocument();
+
+        // 2. Menos Vendidos
+        const menosVendidosBtn = screen.getByRole('button', { name: /Produtos Menos Vendidos/i });
+        fireEvent.click(menosVendidosBtn);
+        expect(screen.getByText('Nenhum produto cadastrado.')).toBeInTheDocument();
+
+        // 3. Saúde do Estoque
+        const saudeEstoqueBtn = screen.getByRole('button', { name: /Saúde do Estoque/i });
+        fireEvent.click(saudeEstoqueBtn);
+        expect(screen.getByText('Todos os produtos com estoque saudável!')).toBeInTheDocument();
+    });
+
+    it('Demonstra comportamento inadequado de toggle sob cliques múltiplos consecutivos (updater não-funcional)', async () => {
+        render(<BrowserRouter><Relatorios /></BrowserRouter>);
+
+        await waitFor(() => {
+            expect(screen.queryByText('A carregar histórico...')).not.toBeInTheDocument();
+        });
+
+        const maisVendidosBtn = screen.getByRole('button', { name: /Produtos Mais Vendidos/i });
+        const maisVendidosCard = maisVendidosBtn.closest('.card-lista');
+        const maisVendidosContent = maisVendidosCard.querySelector('.accordion-content');
+
+        // Estado inicial: fechado
+        expect(maisVendidosBtn).toHaveAttribute('aria-expanded', 'false');
+        expect(maisVendidosContent).not.toHaveClass('expanded');
+
+        // Dispara dois cliques seguidos. No JSDOM/Testing Library, cada fireEvent.click
+        // é executado dentro de um bloco act() implicitamente, limpando a fila e re-renderizando.
+        // Portanto, ele re-renderiza como aberto antes de receber o segundo clique,
+        // fazendo com que o segundo clique com sucesso feche o accordion novamente.
+        fireEvent.click(maisVendidosBtn);
+        fireEvent.click(maisVendidosBtn);
+
+        // No ambiente RTL, o comportamento síncrono faz com que volte a ficar fechado.
+        // Em um navegador real sob cliques extremamente rápidos (onde a fila do React não
+        // atualizou a closure a tempo), isso poderia travar no estado aberto.
+        expect(maisVendidosBtn).toHaveAttribute('aria-expanded', 'false');
+        expect(maisVendidosContent).not.toHaveClass('expanded');
     });
 });

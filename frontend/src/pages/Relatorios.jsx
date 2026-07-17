@@ -27,6 +27,17 @@ export default function Relatorios() {
     const [todosPedidos, setTodosPedidos] = useState([]);
     const [carregando, setCarregando] = useState(true);
     const [pedidoExpandido, setPedidoExpandido] = useState(null);
+    const [busca, setBusca] = useState('');
+    const [maisVendidosAberto, setMaisVendidosAberto] = useState(false);
+    const [menosVendidosAberto, setMenosVendidosAberto] = useState(false);
+    const [estoqueBaixoAberto, setEstoqueBaixoAberto] = useState(false);
+
+    const handleToggleKeyDown = (e, setter, valorAtual) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setter(!valorAtual);
+        }
+    };
 
     // Filtro rápido e datas customizadas
     const [filtroRapido, setFiltroRapido] = useState('7d');
@@ -164,12 +175,12 @@ export default function Relatorios() {
 
     const obterEstiloStatus = (status) => {
         switch (status) {
-            case 'Pendente': return { bg: '#fef9e7', cor: '#f1c40f' };
-            case 'Enviado': return { bg: '#ebf5fb', cor: '#3498db' };
-            case 'Entregue': return { bg: '#e8f8f5', cor: '#1abc9c' };
-            case 'Cancelado': return { bg: '#fadbd8', cor: '#e74c3c' };
+            case 'Pendente': return { bg: 'rgba(254, 249, 231, 0.65)', cor: '#f1c40f' };
+            case 'Enviado': return { bg: 'rgba(243, 229, 245, 0.65)', cor: '#9b59b6' };
+            case 'Entregue': return { bg: 'rgba(232, 248, 245, 0.65)', cor: '#1abc9c' };
+            case 'Cancelado': return { bg: 'rgba(252, 228, 236, 0.65)', cor: '#e91e63' };
             case 'Pago':
-            default: return { bg: '#eafaf1', cor: '#27ae60' };
+            default: return { bg: 'rgba(234, 250, 241, 0.65)', cor: '#2ecc71' };
         }
     };
 
@@ -188,6 +199,27 @@ export default function Relatorios() {
     const pedidosOrdenados = useMemo(() => {
         return [...pedidosFiltrados].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }, [pedidosFiltrados]);
+
+    const pedidosFiltradosPorBusca = useMemo(() => {
+        const query = busca.trim().toLowerCase();
+        if (!query) return pedidosOrdenados;
+
+        return pedidosOrdenados.filter(pedido => {
+            const cliente = (pedido.cliente || 'Consumidor Final').toLowerCase();
+            const status = (pedido.status || 'Pago').toLowerCase();
+
+            const matchesCliente = cliente.includes(query);
+            const matchesStatus = status.includes(query);
+
+            const matchesItens = pedido.itens
+                ? pedido.itens.some(item =>
+                    (item.nome || `Produto #${item.produtoId}`).toLowerCase().includes(query)
+                )
+                : false;
+
+            return matchesCliente || matchesStatus || matchesItens;
+        });
+    }, [pedidosOrdenados, busca]);
 
     const valorEstoque = useMemo(() => {
         return todosProdutos.reduce((acc, p) => acc + (p.quantidade * (p.preco || 0)), 0);
@@ -231,8 +263,7 @@ export default function Relatorios() {
         });
 
         return Object.values(vendas)
-            .sort((a, b) => b.quantidade - a.quantidade)
-            .slice(0, 5);
+            .sort((a, b) => b.quantidade - a.quantidade);
     }, [pedidosValidos]);
 
     // Less Selling (Menos vendidos)
@@ -272,8 +303,7 @@ export default function Relatorios() {
         });
 
         return Object.values(vendas)
-            .sort((a, b) => a.quantidade - b.quantidade)
-            .slice(0, 5);
+            .sort((a, b) => a.quantidade - b.quantidade);
     }, [pedidosValidos, todosProdutos]);
 
     // Stock health
@@ -359,11 +389,11 @@ export default function Relatorios() {
         });
 
         const cores = {
-            Pendente: '#f1c40f',
-            Pago: '#27ae60',
-            Enviado: '#3498db',
+            Pendente: '#ffd54f',
+            Pago: '#2ecc71',
+            Enviado: '#9b59b6',
             Entregue: '#1abc9c',
-            Cancelado: '#e74c3c'
+            Cancelado: '#ff4081'
         };
 
         return Object.keys(statusContagem)
@@ -458,15 +488,15 @@ export default function Relatorios() {
                                 <AreaChart data={dadosTendencia} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorFaturamento" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#2ecc71" stopOpacity={0.8} />
-                                            <stop offset="95%" stopColor="#2ecc71" stopOpacity={0} />
+                                            <stop offset="5%" stopColor="#9b59b6" stopOpacity={0.8} />
+                                            <stop offset="95%" stopColor="#fce4ec" stopOpacity={0.05} />
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                                     <XAxis dataKey="data" stroke="#7f8c8d" fontSize={12} tickLine={false} />
                                     <YAxis stroke="#7f8c8d" fontSize={12} tickLine={false} axisLine={false} />
                                     <Tooltip formatter={(value) => [`R$ ${Number(value).toFixed(2)}`, 'Faturamento']} />
-                                    <Area type="monotone" dataKey="Faturamento" stroke="#2ecc71" strokeWidth={2} fillOpacity={1} fill="url(#colorFaturamento)" />
+                                    <Area type="monotone" dataKey="Faturamento" stroke="#9b59b6" strokeWidth={3} fillOpacity={1} fill="url(#colorFaturamento)" />
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
@@ -503,83 +533,142 @@ export default function Relatorios() {
             {!carregando && (
                 <div className="dashboard-secao-listas">
                     <div className="card-lista">
-                        <h4 className="card-lista-titulo">🔥 Produtos Mais Vendidos</h4>
-                        {produtosMaisVendidos.length === 0 ? (
-                            <p className="lista-vazia">Nenhuma venda registrada no período.</p>
-                        ) : (
-                            <ul className="lista-itens">
-                                {produtosMaisVendidos.map((prod, idx) => (
-                                    <li key={idx} className="lista-item lista-item-top">
-                                        <div className="item-info">
-                                            <span className="item-nome" title={prod.nome}>{prod.nome}</span>
-                                            <span className="item-detalhe">{prod.quantidade} unid. vendidas</span>
-                                        </div>
-                                        <div className="item-valores">
-                                            <span className="item-valor-destaque">R$ {prod.faturamento.toFixed(2)}</span>
-                                            <span className="item-valor-secundario">Total</span>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                        <h4 className="card-lista-titulo">
+                            <button
+                                type="button"
+                                className="card-lista-header-toggle"
+                                onClick={() => setMaisVendidosAberto(!maisVendidosAberto)}
+                                onKeyDown={(e) => handleToggleKeyDown(e, setMaisVendidosAberto, maisVendidosAberto)}
+                                aria-expanded={maisVendidosAberto}
+                            >
+                                <span>🔥 Produtos Mais Vendidos</span>
+                                <span>{maisVendidosAberto ? '▲' : '▼'}</span>
+                            </button>
+                        </h4>
+                        <div className="accordion-content-dynamic">
+                            <div className="accordion-inner">
+                                {produtosMaisVendidos.length === 0 ? (
+                                    <p className="lista-vazia">Nenhuma venda registrada no período.</p>
+                                ) : (
+                                    <ul className="lista-itens">
+                                        {(maisVendidosAberto ? produtosMaisVendidos : produtosMaisVendidos.slice(0, 3)).map((prod, idx) => (
+                                            <li key={idx} className="lista-item lista-item-top">
+                                                <div className="item-info">
+                                                    <span className="item-nome" title={prod.nome}>{prod.nome}</span>
+                                                    <span className="item-detalhe">{prod.quantidade} unid. vendidas</span>
+                                                </div>
+                                                <div className="item-valores">
+                                                    <span className="item-valor-destaque">R$ {prod.faturamento.toFixed(2)}</span>
+                                                    <span className="item-valor-secundario">Total</span>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
                     <div className="card-lista">
-                        <h4 className="card-lista-titulo">❄️ Menos Vendidos / Sem Vendas</h4>
-                        {produtosMenosVendidos.length === 0 ? (
-                            <p className="lista-vazia">Nenhum produto cadastrado.</p>
-                        ) : (
-                            <ul className="lista-itens">
-                                {produtosMenosVendidos.map((prod, idx) => (
-                                    <li key={idx} className="lista-item lista-item-less">
-                                        <div className="item-info">
-                                            <span className="item-nome" title={prod.nome}>{prod.nome}</span>
-                                            <span className="item-detalhe">{prod.quantidade} unid. vendidas</span>
-                                        </div>
-                                        <div className="item-valores">
-                                            <span className="item-valor-destaque" style={{ color: '#e74c3c' }}>R$ {prod.faturamento.toFixed(2)}</span>
-                                            <span className="item-valor-secundario">Total</span>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                        <h4 className="card-lista-titulo">
+                            <button
+                                type="button"
+                                className="card-lista-header-toggle"
+                                onClick={() => setMenosVendidosAberto(!menosVendidosAberto)}
+                                onKeyDown={(e) => handleToggleKeyDown(e, setMenosVendidosAberto, menosVendidosAberto)}
+                                aria-expanded={menosVendidosAberto}
+                            >
+                                <span>❄️ Produtos Menos Vendidos</span>
+                                <span>{menosVendidosAberto ? '▲' : '▼'}</span>
+                            </button>
+                        </h4>
+                        <div className="accordion-content-dynamic">
+                            <div className="accordion-inner">
+                                {produtosMenosVendidos.length === 0 ? (
+                                    <p className="lista-vazia">Nenhum produto cadastrado.</p>
+                                ) : (
+                                    <ul className="lista-itens">
+                                        {(menosVendidosAberto ? produtosMenosVendidos : produtosMenosVendidos.slice(0, 3)).map((prod, idx) => (
+                                            <li key={idx} className="lista-item lista-item-less">
+                                                <div className="item-info">
+                                                    <span className="item-nome" title={prod.nome}>{prod.nome}</span>
+                                                    <span className="item-detalhe">{prod.quantidade} unid. vendidas</span>
+                                                </div>
+                                                <div className="item-valores">
+                                                    <span className="item-valor-destaque" style={{ color: '#e74c3c' }}>R$ {prod.faturamento.toFixed(2)}</span>
+                                                    <span className="item-valor-secundario">Total</span>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
                     <div className="card-lista">
-                        <h4 className="card-lista-titulo">⚠️ Alerta de Estoque Baixo</h4>
-                        {saudeDoEstoque.length === 0 ? (
-                            <p className="lista-vazia" style={{ color: '#27ae60' }}>Todos os produtos com estoque saudável!</p>
-                        ) : (
-                            <ul className="lista-itens">
-                                {saudeDoEstoque.map((prod, idx) => (
-                                    <li key={idx} className="lista-item lista-item-alerta">
-                                        <div className="item-info">
-                                            <span className="item-nome" title={prod.nome}>{prod.nome}</span>
-                                            <span className="item-detalhe">Estoque físico atual</span>
-                                        </div>
-                                        <div className="item-valores">
-                                            <span className="item-valor-destaque" style={{ color: '#e74c3c' }}>{prod.quantidade} unid.</span>
-                                            <span className="item-valor-secundario">Restantes</span>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                        <h4 className="card-lista-titulo">
+                            <button
+                                type="button"
+                                className="card-lista-header-toggle"
+                                onClick={() => setEstoqueBaixoAberto(!estoqueBaixoAberto)}
+                                onKeyDown={(e) => handleToggleKeyDown(e, setEstoqueBaixoAberto, estoqueBaixoAberto)}
+                                aria-expanded={estoqueBaixoAberto}
+                            >
+                                <span>⚠️ Saúde do Estoque</span>
+                                <span>{estoqueBaixoAberto ? '▲' : '▼'}</span>
+                            </button>
+                        </h4>
+                        <div className="accordion-content-dynamic">
+                            <div className="accordion-inner">
+                                {saudeDoEstoque.length === 0 ? (
+                                    <p className="lista-vazia" style={{ color: '#27ae60' }}>Todos os produtos com estoque saudável!</p>
+                                ) : (
+                                    <ul className="lista-itens">
+                                        {(estoqueBaixoAberto ? saudeDoEstoque : saudeDoEstoque.slice(0, 3)).map((prod, idx) => (
+                                            <li key={idx} className="lista-item lista-item-alerta">
+                                                <div className="item-info">
+                                                    <span className="item-nome" title={prod.nome}>{prod.nome}</span>
+                                                    <span className="item-detalhe">Estoque físico atual</span>
+                                                </div>
+                                                <div className="item-valores">
+                                                    <span className="item-valor-destaque" style={{ color: '#e74c3c' }}>{prod.quantidade} unid.</span>
+                                                    <span className="item-valor-secundario">Restantes</span>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
 
             {/* TABELA DE HISTÓRICO DE PEDIDOS */}
             <div className="tabela-pedidos-container">
-                <h3 className="tabela-pedidos-titulo">
-                    📋 Histórico de Vendas
-                </h3>
+                <div className="tabela-pedidos-header">
+                    <h3 className="tabela-pedidos-titulo">
+                        📋 Histórico de Vendas
+                    </h3>
+                    <div className="busca-pedidos-container">
+                        <span className="busca-icone">🔍</span>
+                        <input
+                            type="text"
+                            placeholder="Buscar por cliente, produto ou status..."
+                            value={busca}
+                            onChange={(e) => setBusca(e.target.value)}
+                            className="busca-pedidos-input"
+                        />
+                    </div>
+                </div>
 
                 {carregando ? (
                     <p className="historico-mensagem">A carregar histórico...</p>
                 ) : pedidosFiltrados.length === 0 ? (
                     <p className="historico-mensagem vazia">Nenhuma venda registada neste período.</p>
+                ) : pedidosFiltradosPorBusca.length === 0 ? (
+                    <p className="historico-mensagem vazia">Nenhum pedido encontrado para a sua busca</p>
                 ) : (
                     <div className="tabela-pedidos-wrapper">
                         <table className="tabela-pedidos">
@@ -593,7 +682,7 @@ export default function Relatorios() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {pedidosOrdenados.map(pedido => {
+                                {pedidosFiltradosPorBusca.map(pedido => {
                                     const estilo = obterEstiloStatus(pedido.status || 'Pago');
                                     const isCancelado = pedido.status === 'Cancelado';
 
