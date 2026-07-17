@@ -1803,16 +1803,13 @@ button {
 }
 
 .accordion-content {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.35s ease, opacity 0.35s ease, visibility 0.35s ease;
-    opacity: 0;
-    overflow: hidden;
-    visibility: hidden;
+    opacity: 1;
+    overflow: visible;
+    visibility: visible;
+    transition: opacity 0.35s ease;
 }
 
 .accordion-content.expanded {
-    grid-template-rows: 1fr;
     opacity: 1;
     visibility: visible;
 }
