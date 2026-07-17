@@ -1276,7 +1276,7 @@ button {
         gap: 16px;
         padding-bottom: 10px;
     }
-    
+
     .busca-pedidos-container {
         max-width: 320px;
     }
@@ -1625,6 +1625,7 @@ button {
     grid-template-columns: 1fr;
     gap: 20px;
     margin-bottom: 25px;
+    align-items: start;
 }
 
 @media (min-width: 992px) {
@@ -1773,4 +1774,50 @@ button {
     border-color: rgba(231, 76, 60, 0.5);
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(231, 76, 60, 0.35);
+}
+
+/* Accordion component styles */
+.card-lista-header-toggle {
+    background: none;
+    border: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
+    outline: none;
+    transition: var(--transition-smooth);
+}
+
+.card-lista-header-toggle:hover {
+    color: #9b59b6;
+}
+
+.card-lista-header-toggle:focus-visible {
+    outline: 2px solid #9b59b6;
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+.accordion-content {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.35s ease, opacity 0.35s ease, visibility 0.35s ease;
+    opacity: 0;
+    overflow: hidden;
+    visibility: hidden;
+}
+
+.accordion-content.expanded {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    visibility: visible;
+}
+
+.accordion-inner {
+    min-height: 0;
+    padding-top: 15px;
 }
