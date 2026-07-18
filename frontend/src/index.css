@@ -1918,9 +1918,9 @@ button {
     font-weight: 700;
     color: #2c3e50;
     margin-top: 0;
-    margin-bottom: 15px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid #fdf2f7;
+    margin-bottom: 5px;
+    padding-bottom: 0;
+    border-bottom: none;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -2038,8 +2038,8 @@ button {
 
 /* Accordion component styles */
 .card-lista-header-toggle {
-    background: none;
-    border: none;
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     font: inherit;
     color: inherit;
     cursor: pointer;
@@ -2047,19 +2047,29 @@ button {
     width: 100%;
     justify-content: space-between;
     align-items: center;
-    padding: 0;
+    padding: 10px 14px;
+    border-radius: 8px;
     outline: none;
-    transition: var(--transition-smooth);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .card-lista-header-toggle:hover {
     color: #9b59b6;
+    background: rgba(255, 255, 255, 0.6);
+    border-color: rgba(155, 89, 182, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(155, 89, 182, 0.08);
+}
+
+.card-lista-header-toggle:active {
+    transform: translateY(0);
+    box-shadow: none;
 }
 
 .card-lista-header-toggle:focus-visible {
     outline: 2px solid #9b59b6;
-    outline-offset: 4px;
-    border-radius: 4px;
+    outline-offset: 2px;
+    border-radius: 8px;
 }
 
 .accordion-content {
