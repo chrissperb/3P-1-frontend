@@ -167,4 +167,31 @@ describe('Componente PDV - Testes de Comportamento', () => {
             expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('Erro: Estoque insuficiente no servidor.'));
         });
     });
+
+    it('Deve gerenciar a abertura e fechamento do drawer do carrinho no mobile', async () => {
+        render(<BrowserRouter><Pdv /></BrowserRouter>);
+
+        await screen.findByText('Vestido Floral');
+
+        // Pega o botão flutuante e o container do carrinho
+        const botaoFlutuante = screen.getByTestId('floating-cart-btn');
+        const checkoutSidebar = screen.getByText('🛒 Carrinho e Entrega').closest('.pdv-checkout-sidebar');
+
+        // Estado inicial: fechado (não deve ter a classe carrinho-aberto)
+        expect(checkoutSidebar).not.toHaveClass('carrinho-aberto');
+
+        // Clicar no botão flutuante -> abre o carrinho (deve ter a classe carrinho-aberto)
+        fireEvent.click(botaoFlutuante);
+        expect(checkoutSidebar).toHaveClass('carrinho-aberto');
+
+        // Clicar no botão de fechar -> fecha o carrinho
+        const botaoFechar = screen.getByRole('button', { name: /Fechar carrinho/i });
+        fireEvent.click(botaoFechar);
+        expect(checkoutSidebar).not.toHaveClass('carrinho-aberto');
+
+        // Clicar em "+ Adicionar" -> deve adicionar e abrir o carrinho automaticamente
+        const botoesAdicionar = await screen.findAllByText('+ Adicionar');
+        fireEvent.click(botoesAdicionar[0]);
+        expect(checkoutSidebar).toHaveClass('carrinho-aberto');
+    });
 });

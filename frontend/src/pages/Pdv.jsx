@@ -6,6 +6,7 @@ export default function Pdv() {
     const [categoriaAtiva, setCategoriaAtiva] = useState('Todas');
     const [carrinho, setCarrinho] = useState([]);
     const [carregando, setCarregando] = useState(true);
+    const [carrinhoAbertoMobile, setCarrinhoAbertoMobile] = useState(false);
 
     // Estados do Cliente e Finalização
     const [cliente, setCliente] = useState('');
@@ -70,6 +71,7 @@ export default function Pdv() {
             }
             return [...carrinhoAtual, { ...produto, quantidadeComprada: 1 }];
         });
+        setCarrinhoAbertoMobile(true);
     };
 
     const removerDoCarrinho = (produtoId) => setCarrinho(carrinho.filter(item => item.id !== produtoId));
@@ -165,6 +167,7 @@ export default function Pdv() {
                 setFreteSelecionado(0);
                 setNomeFreteSelecionado('');
                 setOpcoesFrete([]);
+                setCarrinhoAbertoMobile(false);
 
                 buscarProdutos();
             } else {
@@ -218,10 +221,19 @@ export default function Pdv() {
             </div>
 
             {/* LADO DIREITO: CARRINHO E CHECKOUT */}
-            <div className="pdv-checkout-sidebar">
-                <h3 className="checkout-titulo">
-                    🛒 Carrinho e Entrega
-                </h3>
+            <div className={`pdv-checkout-sidebar ${carrinhoAbertoMobile ? 'carrinho-aberto' : ''}`}>
+                <div className="sidebar-header-mobile">
+                    <h3 className="checkout-titulo">
+                        🛒 Carrinho e Entrega
+                    </h3>
+                    <button
+                        onClick={() => setCarrinhoAbertoMobile(false)}
+                        className="btn-fechar-carrinho-mobile"
+                        aria-label="Fechar carrinho"
+                    >
+                        ✕
+                    </button>
+                </div>
 
                 {carrinho.length === 0 ? (
                     <p className="carrinho-vazio">O carrinho está vazio.</p>
@@ -318,6 +330,21 @@ export default function Pdv() {
                     </>
                 )}
             </div>
+
+            {/* Botão Flutuante de Carrinho para Mobile */}
+            <button
+                className="floating-cart-button"
+                onClick={() => setCarrinhoAbertoMobile(true)}
+                aria-label="Abrir carrinho"
+                data-testid="floating-cart-btn"
+            >
+                <span className="cart-icon">🛒</span>
+                {carrinho.length > 0 && (
+                    <span className="cart-badge">
+                        {carrinho.reduce((acc, item) => acc + item.quantidadeComprada, 0)}
+                    </span>
+                )}
+            </button>
         </div>
     );
 }
