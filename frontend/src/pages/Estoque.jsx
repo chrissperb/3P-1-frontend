@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FormProduto from '../components/FormProduto';
+import ModalConfirmacao from '../components/ModalConfirmacao';
 
 export default function Estoque() {
     const [produtos, setProdutos] = useState([]);
@@ -9,6 +10,8 @@ export default function Estoque() {
     const [erro, setErro] = useState('');
     const [exibirForm, setExibirForm] = useState(false);
     const [produtoEditado, setProdutoEditado] = useState(null);
+    const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
+    const [produtoParaExcluir, setProdutoParaExcluir] = useState(null);
 
     const navigate = useNavigate();
 
@@ -54,10 +57,15 @@ export default function Estoque() {
         buscarProdutos();
     }, [navigate]);
 
-    const deletarProduto = async (id, nome) => {
-        if (!window.confirm(`⚠️ Tem certeza que deseja excluir definitivamente o produto "${nome}"?`)) {
-            return;
-        }
+    const prepararExclusao = (produto) => {
+        setProdutoParaExcluir(produto);
+        setModalExcluirAberto(true);
+    };
+
+    const confirmarExclusao = async () => {
+        if (!produtoParaExcluir) return;
+
+        const { id } = produtoParaExcluir;
 
         try {
             const token = localStorage.getItem('token');
@@ -76,6 +84,9 @@ export default function Estoque() {
         } catch (erro) {
             console.error('Erro de conexão ao excluir:', erro);
             alert('Erro de conexão com o servidor.');
+        } finally {
+            setModalExcluirAberto(false);
+            setProdutoParaExcluir(null);
         }
     };
 
@@ -191,7 +202,7 @@ export default function Estoque() {
                                                             ✏️
                                                         </button>
                                                         <button
-                                                            onClick={() => deletarProduto(produto.id, produto.nome)}
+                                                            onClick={() => prepararExclusao(produto)}
                                                             className="btn-acao"
                                                             title="Excluir Produto"
                                                         >
@@ -237,7 +248,7 @@ export default function Estoque() {
                                                         ✏️ Editar
                                                     </button>
                                                     <button
-                                                        onClick={() => deletarProduto(produto.id, produto.nome)}
+                                                        onClick={() => prepararExclusao(produto)}
                                                         className="btn-acao-card btn-excluir"
                                                         title="Excluir Produto"
                                                     >
@@ -253,6 +264,20 @@ export default function Estoque() {
                     </div>
                 </>
             )}
+
+            <ModalConfirmacao
+                isOpen={modalExcluirAberto}
+                titulo="⚠️ Excluir Produto"
+                mensagem={`Tem certeza que deseja excluir definitivamente o produto "${produtoParaExcluir?.nome}"?`}
+                confirmText="Excluir"
+                cancelText="Cancelar"
+                tipo="danger"
+                onConfirm={confirmarExclusao}
+                onCancel={() => {
+                    setModalExcluirAberto(false);
+                    setProdutoParaExcluir(null);
+                }}
+            />
         </div>
     );
 }

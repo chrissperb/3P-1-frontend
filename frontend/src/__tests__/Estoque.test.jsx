@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Estoque from '../pages/Estoque';
 import { vi } from 'vitest';
@@ -82,9 +82,7 @@ describe('Componente Estoque - Testes de Interface', () => {
         expect(screen.getByText('Tela de Formulário')).toBeInTheDocument();
     });
 
-    it('Deve deletar um produto após confirmação (window.confirm)', async () => {
-        const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
-
+    it('Deve deletar um produto após confirmação no modal', async () => {
         fetch.mockResolvedValueOnce({ status: 200, ok: true, json: async () => mockProdutos })
             .mockResolvedValueOnce({ status: 200, ok: true });
 
@@ -94,7 +92,11 @@ describe('Componente Estoque - Testes de Interface', () => {
         const botoesDeletar = screen.getAllByTitle('Excluir Produto');
         fireEvent.click(botoesDeletar[0]);
 
-        expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining('Tem certeza que deseja excluir definitivamente'));
+        const modalConfirmacao = screen.getByTestId('modal-confirmacao');
+        expect(modalConfirmacao).toBeInTheDocument();
+
+        const botaoExcluirModal = within(modalConfirmacao).getByRole('button', { name: 'Excluir' });
+        fireEvent.click(botaoExcluirModal);
 
         expect(fetch).toHaveBeenCalledWith('http://localhost:3000/produtos/1', expect.objectContaining({ method: 'DELETE' }));
 
@@ -113,9 +115,7 @@ describe('Componente Estoque - Testes de Interface', () => {
         });
     });
 
-    it('Não deve deletar o produto se o usuário cancelar a confirmação', async () => {
-        const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
-
+    it('Não deve deletar o produto se o usuário cancelar a confirmação no modal', async () => {
         fetch.mockResolvedValueOnce({ status: 200, ok: true, json: async () => mockProdutos });
 
         render(<BrowserRouter><Estoque /></BrowserRouter>);
@@ -124,7 +124,11 @@ describe('Componente Estoque - Testes de Interface', () => {
         const botoesDeletar = screen.getAllByTitle('Excluir Produto');
         fireEvent.click(botoesDeletar[0]);
 
-        expect(confirmSpy).toHaveBeenCalled();
+        const modalConfirmacao = screen.getByTestId('modal-confirmacao');
+        expect(modalConfirmacao).toBeInTheDocument();
+
+        const botaoCancelarModal = within(modalConfirmacao).getByRole('button', { name: 'Cancelar' });
+        fireEvent.click(botaoCancelarModal);
 
         expect(fetch).not.toHaveBeenCalledWith(
             expect.stringContaining('/produtos/1'),
