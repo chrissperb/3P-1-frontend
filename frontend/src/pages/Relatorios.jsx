@@ -53,8 +53,9 @@ export default function Relatorios() {
     const navigate = useNavigate();
 
     useEffect(() => {
+        let isInitial = true;
         const buscarDadosDoSistema = async () => {
-            setCarregando(true);
+            if (isInitial) setCarregando(true);
             try {
                 const token = localStorage.getItem('token');
                 if (!token) { navigate('/login'); return; }
@@ -76,11 +77,17 @@ export default function Relatorios() {
             } catch (erro) {
                 console.error("Erro ao buscar dados:", erro);
             } finally {
-                setCarregando(false);
+                if (isInitial) {
+                    setCarregando(false);
+                    isInitial = false;
+                }
             }
         };
 
         buscarDadosDoSistema();
+
+        const intervalId = setInterval(buscarDadosDoSistema, 5000);
+        return () => clearInterval(intervalId);
     }, [navigate]);
 
     const aplicarFiltroRapido = (tipo) => {
@@ -222,7 +229,11 @@ export default function Relatorios() {
     }, [pedidosOrdenados, busca]);
 
     const valorEstoque = useMemo(() => {
-        return todosProdutos.reduce((acc, p) => acc + (p.quantidade * (p.preco || 0)), 0);
+        return todosProdutos.reduce((acc, p) => {
+            const qtd = Number(p.quantidade) || 0;
+            const precoCusto = Number(p.preco) || 0;
+            return acc + (qtd * precoCusto);
+        }, 0);
     }, [todosProdutos]);
 
     const pedidosValidos = useMemo(() => {

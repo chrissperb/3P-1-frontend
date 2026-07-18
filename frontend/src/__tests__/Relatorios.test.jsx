@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Relatorios from '../pages/Relatorios';
 import { vi } from 'vitest';
@@ -443,5 +443,80 @@ describe('Componente Relatorios - Testes de Dashboard', () => {
         // atualizou a closure a tempo), isso poderia travar no estado aberto.
         expect(maisVendidosBtn).toHaveAttribute('aria-expanded', 'false');
         expect(maisVendidosContent).not.toHaveClass('expanded');
+    });
+
+    it('Deve calcular corretamente o estoque mesmo com tipos mistos (string e undefined)', async () => {
+        const mockProdutosMistificados = [
+            { id: 1, nome: 'Produto A', quantidade: '10', preco: '50' }, // 500
+            { id: 2, nome: 'Produto B', quantidade: 5, preco: undefined }, // 0
+            { id: 3, nome: 'Produto C', quantidade: undefined, preco: 100 } // 0
+        ];
+
+        fetch.mockImplementation((url) => {
+            if (url.includes('/produtos')) return Promise.resolve({ ok: true, json: async () => mockProdutosMistificados });
+            if (url.includes('/pedidos')) return Promise.resolve({ ok: true, json: async () => [] });
+        });
+
+        render(<BrowserRouter><Relatorios /></BrowserRouter>);
+
+        await waitFor(() => {
+            expect(screen.queryByText('A carregar histórico...')).not.toBeInTheDocument();
+        });
+
+        // 10 * 50 = 500.00
+        expect(screen.getByText('R$ 500.00')).toBeInTheDocument();
+    });
+
+    it('Deve atualizar os dados periodicamente via polling', async () => {
+        vi.useFakeTimers();
+
+        const localMockProdutos = [
+            { id: 1, nome: 'Produto A', quantidade: 10, preco: 50 } // 500
+        ];
+
+        let chamadasFetch = 0;
+        fetch.mockImplementation((url) => {
+            if (url.includes('/produtos')) {
+                chamadasFetch++;
+                return Promise.resolve({ ok: true, json: async () => localMockProdutos });
+            }
+            if (url.includes('/pedidos')) {
+                return Promise.resolve({ ok: true, json: async () => [] });
+            }
+        });
+
+        render(<BrowserRouter><Relatorios /></BrowserRouter>);
+
+        // Resolve o carregamento inicial (promessas de fetch) sem avançar o fake timer
+        await act(async () => {
+            await Promise.resolve();
+            await Promise.resolve();
+            await Promise.resolve();
+        });
+
+        expect(screen.queryByText('A carregar histórico...')).not.toBeInTheDocument();
+        expect(chamadasFetch).toBe(1);
+
+        // Avança 5 segundos
+        act(() => {
+            vi.advanceTimersByTime(5000);
+        });
+        await act(async () => {
+            await Promise.resolve();
+            await Promise.resolve();
+        });
+        expect(chamadasFetch).toBe(2);
+
+        // Avança mais 5 segundos
+        act(() => {
+            vi.advanceTimersByTime(5000);
+        });
+        await act(async () => {
+            await Promise.resolve();
+            await Promise.resolve();
+        });
+        expect(chamadasFetch).toBe(3);
+
+        vi.useRealTimers();
     });
 });
