@@ -43,35 +43,35 @@ describe('Componente Estoque - Testes de Interface', () => {
 
         expect(screen.getByText('A carregar produtos...')).toBeInTheDocument();
 
-        const vestido = await screen.findByText('Vestido Infantil');
-        expect(vestido).toBeInTheDocument();
-        expect(screen.getByText('Bermuda Jeans')).toBeInTheDocument();
+        const vestidos = await screen.findAllByText('Vestido Infantil');
+        expect(vestidos[0]).toBeInTheDocument();
+        expect(screen.getAllByText('Bermuda Jeans')[0]).toBeInTheDocument();
 
-        expect(screen.getByText('10 un')).toBeInTheDocument();
+        expect(screen.getAllByText('10 un')[0]).toBeInTheDocument();
     });
 
     it('Deve filtrar os produtos quando o usuário digitar na barra de busca', async () => {
         fetch.mockResolvedValueOnce({ status: 200, ok: true, json: async () => mockProdutos });
 
         render(<BrowserRouter><Estoque /></BrowserRouter>);
-        await screen.findByText('Vestido Infantil');
+        await screen.findAllByText('Vestido Infantil');
 
         const inputBusca = screen.getByPlaceholderText('🔍 Procurar produto pelo nome...');
 
         fireEvent.change(inputBusca, { target: { value: 'Bermuda' } });
 
         expect(screen.queryByText('Vestido Infantil')).not.toBeInTheDocument();
-        expect(screen.getByText('Bermuda Jeans')).toBeInTheDocument();
+        expect(screen.getAllByText('Bermuda Jeans')[0]).toBeInTheDocument();
 
         fireEvent.change(inputBusca, { target: { value: 'Jaqueta' } });
-        expect(screen.getByText('Nenhum produto encontrado.')).toBeInTheDocument();
+        expect(screen.getAllByText('Nenhum produto encontrado.')[0]).toBeInTheDocument();
     });
 
     it('Deve abrir o FormProduto ao clicar em Novo Produto', async () => {
         fetch.mockResolvedValueOnce({ status: 200, ok: true, json: async () => mockProdutos });
 
         render(<BrowserRouter><Estoque /></BrowserRouter>);
-        await screen.findByText('Vestido Infantil');
+        await screen.findAllByText('Vestido Infantil');
 
         const botaoNovo = screen.getByText('+ Novo Produto');
         fireEvent.click(botaoNovo);
@@ -89,7 +89,7 @@ describe('Componente Estoque - Testes de Interface', () => {
             .mockResolvedValueOnce({ status: 200, ok: true });
 
         render(<BrowserRouter><Estoque /></BrowserRouter>);
-        await screen.findByText('Vestido Infantil');
+        await screen.findAllByText('Vestido Infantil');
 
         const botoesDeletar = screen.getAllByTitle('Excluir Produto');
         fireEvent.click(botoesDeletar[0]);
@@ -119,7 +119,7 @@ describe('Componente Estoque - Testes de Interface', () => {
         fetch.mockResolvedValueOnce({ status: 200, ok: true, json: async () => mockProdutos });
 
         render(<BrowserRouter><Estoque /></BrowserRouter>);
-        await screen.findByText('Vestido Infantil');
+        await screen.findAllByText('Vestido Infantil');
 
         const botoesDeletar = screen.getAllByTitle('Excluir Produto');
         fireEvent.click(botoesDeletar[0]);
@@ -131,14 +131,14 @@ describe('Componente Estoque - Testes de Interface', () => {
             expect.objectContaining({ method: 'DELETE' })
         );
 
-        expect(screen.getByText('Vestido Infantil')).toBeInTheDocument();
+        expect(screen.getAllByText('Vestido Infantil')[0]).toBeInTheDocument();
     });
 
     it('Deve abrir o formulário com os dados do produto ao clicar em Editar', async () => {
         fetch.mockResolvedValueOnce({ status: 200, ok: true, json: async () => mockProdutos });
 
         render(<BrowserRouter><Estoque /></BrowserRouter>);
-        await screen.findByText('Vestido Infantil');
+        await screen.findAllByText('Vestido Infantil');
 
         const botoesEditar = screen.getAllByTitle('Editar Produto');
         fireEvent.click(botoesEditar[0]);
@@ -161,5 +161,18 @@ describe('Componente Estoque - Testes de Interface', () => {
 
         const bannerErro = screen.getByText(/Erro na API: 500/i);
         expect(bannerErro).toBeInTheDocument();
+    });
+
+    it('Deve renderizar os cards de produtos responsivos para mobile', async () => {
+        fetch.mockResolvedValueOnce({ status: 200, ok: true, json: async () => mockProdutos });
+
+        render(<BrowserRouter><Estoque /></BrowserRouter>);
+        await screen.findAllByText('Vestido Infantil');
+
+        const cards = screen.getAllByTestId('estoque-card');
+        expect(cards).toHaveLength(2);
+
+        expect(screen.getAllByText('Vestido Infantil')).toHaveLength(2);
+        expect(screen.getAllByText('10 un')).toHaveLength(2);
     });
 });
