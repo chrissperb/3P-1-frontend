@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, Fragment } from 'react';
 import CardResumo from '../components/CardResumo';
+import ModalConfirmacao from '../components/ModalConfirmacao';
 import { useNavigate } from 'react-router-dom';
 import {
     ResponsiveContainer,
@@ -31,6 +32,8 @@ export default function Relatorios() {
     const [maisVendidosAberto, setMaisVendidosAberto] = useState(false);
     const [menosVendidosAberto, setMenosVendidosAberto] = useState(false);
     const [estoqueBaixoAberto, setEstoqueBaixoAberto] = useState(false);
+    const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
+    const [pedidoParaExcluir, setPedidoParaExcluir] = useState(null);
 
     const handleToggleKeyDown = (e, setter, valorAtual) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -148,18 +151,24 @@ export default function Relatorios() {
         }
     };
 
-    const deletarPedido = async (pedidoId) => {
-        if (!window.confirm("Tem certeza que deseja excluir este pedido definitivamente?")) return;
+    const prepararExclusao = (pedidoId) => {
+        setPedidoParaExcluir(pedidoId);
+        setModalExcluirAberto(true);
+    };
+
+    const confirmarExclusao = async () => {
+        if (!pedidoParaExcluir) return;
+
         try {
             const token = localStorage.getItem('token');
-            const resposta = await fetch(import.meta.env.VITE_API_URL + '/pedidos/' + pedidoId, {
+            const resposta = await fetch(import.meta.env.VITE_API_URL + '/pedidos/' + pedidoParaExcluir, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (resposta.ok) {
                 setTodosPedidos(listaAtual =>
-                    listaAtual.filter(pedido => pedido._id !== pedidoId)
+                    listaAtual.filter(pedido => pedido._id !== pedidoParaExcluir)
                 );
             } else {
                 alert("Erro ao excluir o pedido no servidor.");
@@ -167,6 +176,9 @@ export default function Relatorios() {
         } catch (erro) {
             console.error(erro);
             alert("Erro de conexão ao tentar excluir.");
+        } finally {
+            setModalExcluirAberto(false);
+            setPedidoParaExcluir(null);
         }
     };
 
@@ -732,7 +744,7 @@ export default function Relatorios() {
                                                             <option value="Cancelado">Cancelado</option>
                                                         </select>
                                                         <button
-                                                            onClick={() => deletarPedido(pedido._id)}
+                                                            onClick={() => prepararExclusao(pedido._id)}
                                                             className="btn-deletar-pedido"
                                                             title="Excluir Pedido"
                                                         >
@@ -775,6 +787,20 @@ export default function Relatorios() {
                     </div>
                 )}
             </div>
+
+            <ModalConfirmacao
+                isOpen={modalExcluirAberto}
+                titulo="⚠️ Excluir Pedido"
+                mensagem="Tem certeza que deseja excluir este pedido definitivamente?"
+                confirmText="Excluir"
+                cancelText="Cancelar"
+                tipo="danger"
+                onConfirm={confirmarExclusao}
+                onCancel={() => {
+                    setModalExcluirAberto(false);
+                    setPedidoParaExcluir(null);
+                }}
+            />
         </div>
     );
 }

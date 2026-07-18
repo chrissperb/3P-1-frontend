@@ -171,16 +171,19 @@ describe('Componente Relatorios - Testes de Dashboard', () => {
         expect(inputFinal.value).toBe('2026-07-10');
     });
 
-    it('Deve excluir um pedido e disparar um fetch (DELETE)', async () => {
-        const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
-
+    it('Deve excluir um pedido e disparar um fetch (DELETE) após confirmação no modal', async () => {
         render(<BrowserRouter><Relatorios /></BrowserRouter>);
         await screen.findByText('Christian');
 
         const botoesDeletar = screen.getAllByRole('button', { name: /excluir/i });
         fireEvent.click(botoesDeletar[0]);
 
-        expect(confirmSpy).toHaveBeenCalled();
+        const modalConfirmacao = screen.getByTestId('modal-confirmacao');
+        expect(modalConfirmacao).toBeInTheDocument();
+
+        const botaoExcluirModal = within(modalConfirmacao).getByRole('button', { name: 'Excluir' });
+        fireEvent.click(botaoExcluirModal);
+
         await waitFor(() => {
             expect(fetch).toHaveBeenCalledWith(
                 expect.stringContaining('/pedidos/ped1'),
@@ -189,8 +192,6 @@ describe('Componente Relatorios - Testes de Dashboard', () => {
                 })
             );
         });
-
-        confirmSpy.mockRestore();
     });
 
     it('Deve redirecionar para o login se o usuário não possuir token', async () => {
