@@ -152,56 +152,103 @@ export default function Estoque() {
                         {carregando ? (
                             <p className="carregando-texto">A carregar produtos...</p>
                         ) : (
-                            <table className="estoque-tabela">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Nome</th>
-                                        <th>Categoria</th>
-                                        <th>Estoque</th>
-                                        <th>Preço Venda</th>
-                                        <th className="text-center">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {produtosFiltrados.length === 0 ? (
+                            <>
+                                <table className="estoque-tabela">
+                                    <thead>
                                         <tr>
-                                            <td colSpan="6" className="tabela-vazia">
-                                                Nenhum produto encontrado.
-                                            </td>
+                                            <th>ID</th>
+                                            <th>Nome</th>
+                                            <th>Categoria</th>
+                                            <th>Estoque</th>
+                                            <th>Preço Venda</th>
+                                            <th className="text-center">Ações</th>
                                         </tr>
+                                    </thead>
+                                    <tbody>
+                                        {produtosFiltrados.length === 0 ? (
+                                            <tr>
+                                                <td colSpan="6" className="tabela-vazia">
+                                                    Nenhum produto encontrado.
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            produtosFiltrados.map(produto => (
+                                                <tr key={produto._id}>
+                                                    <td className="bold">{produto.id}</td>
+                                                    <td>{produto.nome}</td>
+                                                    <td className="capitalize">{produto.categoria}</td>
+                                                    <td className={produto.quantidade > 0 ? 'estoque-status-ok' : 'estoque-status-esgotado'}>
+                                                        {produto.quantidade} un
+                                                    </td>
+                                                    <td>R$ {produto.precoVenda.toFixed(2)}</td>
+
+                                                    <td className="text-center">
+                                                        <button
+                                                            onClick={() => prepararEdicao(produto)}
+                                                            className="btn-acao"
+                                                            title="Editar Produto"
+                                                        >
+                                                            ✏️
+                                                        </button>
+                                                        <button
+                                                            onClick={() => deletarProduto(produto.id, produto.nome)}
+                                                            className="btn-acao"
+                                                            title="Excluir Produto"
+                                                        >
+                                                            🗑️
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+
+                                {/* Exibição alternativa em Cards para Mobile */}
+                                <div className="estoque-cards-mobile">
+                                    {produtosFiltrados.length === 0 ? (
+                                        <p className="tabela-vazia">Nenhum produto encontrado.</p>
                                     ) : (
                                         produtosFiltrados.map(produto => (
-                                            <tr key={produto._id}>
-                                                <td className="bold">{produto.id}</td>
-                                                <td>{produto.nome}</td>
-                                                <td className="capitalize">{produto.categoria}</td>
-                                                <td className={produto.quantidade > 0 ? 'estoque-status-ok' : 'estoque-status-esgotado'}>
-                                                    {produto.quantidade} un
-                                                </td>
-                                                <td>R$ {produto.precoVenda.toFixed(2)}</td>
-
-                                                <td className="text-center">
+                                            <div key={produto._id} className="estoque-card-item" data-testid="estoque-card">
+                                                <div className="estoque-card-row header-row">
+                                                    <span className="card-product-id">#{produto.id}</span>
+                                                    <span className="card-product-category capitalize">{produto.categoria}</span>
+                                                </div>
+                                                <h4 className="estoque-card-nome">{produto.nome}</h4>
+                                                <div className="estoque-card-row body-row">
+                                                    <div className="estoque-card-stat">
+                                                        <span className="label">Estoque</span>
+                                                        <span className={produto.quantidade > 0 ? 'estoque-status-ok value' : 'estoque-status-esgotado value'}>
+                                                            {produto.quantidade} un
+                                                        </span>
+                                                    </div>
+                                                    <div className="estoque-card-stat">
+                                                        <span className="label">Preço Venda</span>
+                                                        <span className="value">R$ {produto.precoVenda.toFixed(2)}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="estoque-card-actions">
                                                     <button
                                                         onClick={() => prepararEdicao(produto)}
-                                                        className="btn-acao"
+                                                        className="btn-acao-card btn-editar"
                                                         title="Editar Produto"
                                                     >
-                                                        ✏️
+                                                        ✏️ Editar
                                                     </button>
                                                     <button
                                                         onClick={() => deletarProduto(produto.id, produto.nome)}
-                                                        className="btn-acao"
+                                                        className="btn-acao-card btn-excluir"
                                                         title="Excluir Produto"
                                                     >
-                                                        🗑️
+                                                        🗑️ Excluir
                                                     </button>
-                                                </td>
-                                            </tr>
+                                                </div>
+                                            </div>
                                         ))
                                     )}
-                                </tbody>
-                            </table>
+                                </div>
+                            </>
                         )}
                     </div>
                 </>
