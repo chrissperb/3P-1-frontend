@@ -1162,6 +1162,20 @@ button {
     box-shadow: 0 0 15px rgba(155, 89, 182, 0.35);
 }
 
+.frete-ceps-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.frete-label-sm {
+    font-size: 0.75rem;
+    color: #7f8c8d;
+    display: block;
+    margin-bottom: 4px;
+}
+
 .frete-busca-row {
     display: flex;
     gap: 5px;

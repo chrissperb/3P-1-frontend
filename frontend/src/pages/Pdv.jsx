@@ -13,6 +13,7 @@ export default function Pdv() {
     const [finalizando, setFinalizando] = useState(false);
 
     // 🦋 ESTADOS DO FRETE E DIMENSÕES DO PACOTE
+    const [cepOrigem, setCepOrigem] = useState('88495000');
     const [cepDestino, setCepDestino] = useState('');
     const [pesoCaixa, setPesoCaixa] = useState('0.3');
     const [alturaCaixa, setAlturaCaixa] = useState('4');
@@ -78,9 +79,9 @@ export default function Pdv() {
     const subtotalProdutos = carrinho.reduce((acc, item) => acc + (item.precoVenda * item.quantidadeComprada), 0);
     const totalFinal = subtotalProdutos + freteSelecionado;
 
-    // 3. CALCULAR FRETE COM DIMENSÕES DINÂMICAS
+    // 3. CALCULAR FRETE COM DIMENSÕES DINÂMICAS E CEP ORIGEM EDITÁVEL
     const calcularFrete = async () => {
-        if (cepDestino.length < 8) {
+        if (cepOrigem.length < 8 || cepDestino.length < 8) {
             alert("Por favor, insira um CEP válido.");
             return;
         }
@@ -91,9 +92,9 @@ export default function Pdv() {
         try {
             const token = localStorage.getItem('token');
 
-            // Usando os estados das dimensões preenchidas pelo usuário
+            // Usando os estados das dimensões e CEP de origem preenchidos pelo usuário
             const payload = {
-                from: { postal_code: "88495000" },
+                from: { postal_code: cepOrigem.replace(/\D/g, '') },
                 to: { postal_code: cepDestino.replace(/\D/g, '') },
                 services: "1,2,17",
                 options: { own_hand: false, receipt: false, insurance_value: 0, use_insurance_value: false },
@@ -277,9 +278,33 @@ export default function Pdv() {
                                 </div>
                             </div>
 
+                            <div className="frete-ceps-grid">
+                                <div>
+                                    <label className="frete-label-sm">CEP Origem</label>
+                                    <input
+                                        type="text"
+                                        placeholder="CEP Origem"
+                                        maxLength="8"
+                                        value={cepOrigem}
+                                        onChange={(e) => setCepOrigem(e.target.value.replace(/\D/g, ''))}
+                                        className="frete-input frete-input-cep"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="frete-label-sm">CEP Destino</label>
+                                    <input
+                                        type="text"
+                                        placeholder="CEP do Destino"
+                                        maxLength="8"
+                                        value={cepDestino}
+                                        onChange={(e) => setCepDestino(e.target.value.replace(/\D/g, ''))}
+                                        className="frete-input frete-input-cep"
+                                    />
+                                </div>
+                            </div>
+
                             <div className="frete-busca-row">
-                                <input type="text" placeholder="CEP do Destino" maxLength="8" value={cepDestino} onChange={(e) => setCepDestino(e.target.value.replace(/\D/g, ''))} className="frete-input frete-input-cep" />
-                                <button onClick={calcularFrete} disabled={carregandoFrete || cepDestino.length !== 8} className="btn-buscar-frete">
+                                <button onClick={calcularFrete} disabled={carregandoFrete || cepOrigem.length !== 8 || cepDestino.length !== 8} className="btn-buscar-frete" style={{ width: '100%' }}>
                                     {carregandoFrete ? '⏳' : 'Buscar'}
                                 </button>
                             </div>

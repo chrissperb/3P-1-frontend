@@ -66,6 +66,9 @@ describe('Componente PDV - Testes de Comportamento', () => {
         const botoesAdicionar = await screen.findAllByText('+ Adicionar');
         fireEvent.click(botoesAdicionar[0]);
 
+        const inputCepOrigem = screen.getByPlaceholderText(/CEP Origem/i);
+        expect(inputCepOrigem.value).toBe('88495000');
+
         const inputCep = screen.getByPlaceholderText(/CEP do Destino/i);
         fireEvent.change(inputCep, { target: { value: '88495000' } });
 
@@ -74,6 +77,41 @@ describe('Componente PDV - Testes de Comportamento', () => {
 
         const opcaoFrete = await screen.findByText(/SEDEX - R\$ 25.00/i);
         expect(opcaoFrete).toBeInTheDocument();
+    });
+
+    it('Deve permitir editar o CEP de origem para o cálculo do frete', async () => {
+        fetch.mockResolvedValueOnce({ status: 200, ok: true, json: async () => mockProdutos })
+            .mockResolvedValueOnce({
+                status: 200,
+                ok: true,
+                json: async () => [{ name: 'PAC', price: '18.00', delivery_time: '5' }]
+            });
+
+        render(<BrowserRouter><Pdv /></BrowserRouter>);
+
+        await screen.findByText('Vestido Floral');
+
+        const botoesAdicionar = await screen.findAllByText('+ Adicionar');
+        fireEvent.click(botoesAdicionar[0]);
+
+        const inputCepOrigem = screen.getByPlaceholderText(/CEP Origem/i);
+        fireEvent.change(inputCepOrigem, { target: { value: '01001000' } });
+        expect(inputCepOrigem.value).toBe('01001000');
+
+        const inputCepDestino = screen.getByPlaceholderText(/CEP do Destino/i);
+        fireEvent.change(inputCepDestino, { target: { value: '88495000' } });
+
+        const botaoBuscar = screen.getByText('Buscar');
+        fireEvent.click(botaoBuscar);
+
+        await waitFor(() => {
+            expect(fetch).toHaveBeenCalledWith(
+                'http://localhost:3000/frete',
+                expect.objectContaining({
+                    body: expect.stringContaining('"postal_code":"01001000"')
+                })
+            );
+        });
     });
 
     it('Deve exibir alerta de sucesso ao finalizar uma venda', async () => {
