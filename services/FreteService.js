@@ -1,12 +1,12 @@
 const axios = require('axios');
 
 class FreteService {
-    
+
     static async calcularFrete(dadosPacote) {
         try {
             const resposta = await axios.post(
-                'https://sandbox.superfrete.com/api/v0/calculator', 
-                dadosPacote, 
+                'https://api.superfrete.com/api/v0/calculator',
+                dadosPacote,
                 {
                     headers: {
                         'accept': 'application/json',
@@ -17,7 +17,7 @@ class FreteService {
                 }
             );
 
-            return resposta.data; 
+            return resposta.data;
 
         } catch (error) {
             if (error.response) {
