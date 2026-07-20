@@ -71,7 +71,6 @@ export default function Pdv() {
             }
             return [...carrinhoAtual, { ...produto, quantidadeComprada: 1 }];
         });
-        setCarrinhoAbertoMobile(true);
     };
 
     const removerDoCarrinho = (produtoId) => setCarrinho(carrinho.filter(item => item.id !== produtoId));

@@ -168,7 +168,7 @@ describe('Componente PDV - Testes de Comportamento', () => {
         });
     });
 
-    it('Deve gerenciar a abertura e fechamento do drawer do carrinho no mobile', async () => {
+    it('Deve gerenciar a abertura e fechamento do drawer do carrinho apenas via botão flutuante', async () => {
         render(<BrowserRouter><Pdv /></BrowserRouter>);
 
         await screen.findByText('Vestido Floral');
@@ -189,9 +189,9 @@ describe('Componente PDV - Testes de Comportamento', () => {
         fireEvent.click(botaoFechar);
         expect(checkoutSidebar).not.toHaveClass('carrinho-aberto');
 
-        // Clicar em "+ Adicionar" -> deve adicionar e abrir o carrinho automaticamente
+        // Clicar em "+ Adicionar" -> adiciona item mas NÃO abre o carrinho automaticamente
         const botoesAdicionar = await screen.findAllByText('+ Adicionar');
         fireEvent.click(botoesAdicionar[0]);
-        expect(checkoutSidebar).toHaveClass('carrinho-aberto');
+        expect(checkoutSidebar).not.toHaveClass('carrinho-aberto');
     });
 });
