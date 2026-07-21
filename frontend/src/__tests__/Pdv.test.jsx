@@ -72,7 +72,7 @@ describe('Componente PDV - Testes de Comportamento', () => {
         const inputCep = screen.getByPlaceholderText(/CEP do Destino/i);
         fireEvent.change(inputCep, { target: { value: '88495000' } });
 
-        const botaoBuscar = screen.getByText('Buscar');
+        const botaoBuscar = screen.getByText(/Buscar/i);
         fireEvent.click(botaoBuscar);
 
         const opcaoFrete = await screen.findByText(/SEDEX - R\$ 25.00/i);
@@ -101,7 +101,7 @@ describe('Componente PDV - Testes de Comportamento', () => {
         const inputCepDestino = screen.getByPlaceholderText(/CEP do Destino/i);
         fireEvent.change(inputCepDestino, { target: { value: '88495000' } });
 
-        const botaoBuscar = screen.getByText('Buscar');
+        const botaoBuscar = screen.getByText(/Buscar/i);
         fireEvent.click(botaoBuscar);
 
         await waitFor(() => {
@@ -109,6 +109,46 @@ describe('Componente PDV - Testes de Comportamento', () => {
                 'http://localhost:3000/frete',
                 expect.objectContaining({
                     body: expect.stringContaining('"postal_code":"01001000"')
+                })
+            );
+        });
+    });
+
+    it('Deve executar o fluxo completo de gerar e imprimir etiqueta de frete após buscar o frete', async () => {
+        fetch.mockResolvedValueOnce({ status: 200, ok: true, json: async () => mockProdutos })
+            .mockResolvedValueOnce({ status: 200, ok: true, json: async () => [{ id: 1, name: 'SEDEX', price: '25.00', delivery_time: '2' }] })
+            .mockResolvedValueOnce({ status: 200, ok: true, json: async () => ({ id: 'TAG-12345' }) })
+            .mockResolvedValueOnce({ status: 200, ok: true, json: async () => ({ url: 'https://sandbox.superfrete.com/print/TAG-12345.pdf' }) });
+
+        render(<BrowserRouter><Pdv /></BrowserRouter>);
+
+        await screen.findByText('Vestido Floral');
+
+        const botoesAdicionar = await screen.findAllByText('+ Adicionar');
+        fireEvent.click(botoesAdicionar[0]);
+
+        const inputCepDestino = screen.getByPlaceholderText(/CEP do Destino/i);
+        fireEvent.change(inputCepDestino, { target: { value: '88495000' } });
+
+        const botaoBuscar = screen.getByText(/Buscar/i);
+        fireEvent.click(botaoBuscar);
+
+        const opcaoFrete = await screen.findByText(/SEDEX - R\$ 25.00/i);
+        expect(opcaoFrete).toBeInTheDocument();
+
+        const botaoGerarEtiqueta = screen.getByText(/Gerar etiqueta/i);
+        fireEvent.click(botaoGerarEtiqueta);
+
+        await waitFor(() => {
+            expect(fetch).toHaveBeenCalledWith(
+                'http://localhost:3000/frete/etiqueta',
+                expect.objectContaining({ method: 'POST' })
+            );
+            expect(fetch).toHaveBeenCalledWith(
+                'http://localhost:3000/frete/imprimir',
+                expect.objectContaining({
+                    method: 'POST',
+                    body: JSON.stringify({ orders: ['TAG-12345'] })
                 })
             );
         });

@@ -45,4 +45,34 @@ describe('FreteService - Testes Unitários', () => {
 
         expect(axios.post).toHaveBeenCalledTimes(1);
     });
+
+    it('Deve chamar a API de cart ao gerar etiqueta', async () => {
+        const respostaMock = { data: { id: '01JK6D99A7SVYXV03C3ZFS7CXA' } };
+        axios.post.mockResolvedValue(respostaMock);
+
+        const cartMock = { service: 1 };
+        const resultado = await FreteService.gerarEtiqueta(cartMock);
+
+        expect(axios.post).toHaveBeenCalledWith(
+            expect.stringContaining('/api/v0/cart'),
+            cartMock,
+            expect.any(Object)
+        );
+        expect(resultado.id).toBe('01JK6D99A7SVYXV03C3ZFS7CXA');
+    });
+
+    it('Deve chamar a API de print ao buscar link da etiqueta', async () => {
+        const respostaMock = { data: { url: 'https://sandbox.superfrete.com/print/01JK6D99A7.pdf' } };
+        axios.post.mockResolvedValue(respostaMock);
+
+        const printMock = { orders: ['01JK6D99A7SVYXV03C3ZFS7CXA'] };
+        const resultado = await FreteService.imprimirEtiqueta(printMock);
+
+        expect(axios.post).toHaveBeenCalledWith(
+            expect.stringContaining('/api/v0/tag/print'),
+            printMock,
+            expect.any(Object)
+        );
+        expect(resultado.url).toContain('.pdf');
+    });
 });
