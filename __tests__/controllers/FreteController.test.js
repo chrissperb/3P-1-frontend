@@ -63,4 +63,32 @@ describe('FreteController - Testes Unitários', () => {
             expect(res.json).toHaveBeenCalledWith({ erro: 'Falha de rede' });
         });
     });
+
+    describe('gerarEtiqueta', () => {
+        it('Deve retornar 200 e o id da etiqueta gerada', async () => {
+            req.body = { service: 1 };
+            const mockResposta = { id: '01JK6D99A7SVYXV03C3ZFS7CXA' };
+            FreteService.gerarEtiqueta.mockResolvedValue(mockResposta);
+
+            await FreteController.gerarEtiqueta(req, res);
+
+            expect(FreteService.gerarEtiqueta).toHaveBeenCalledWith(req.body);
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(mockResposta);
+        });
+    });
+
+    describe('imprimirEtiqueta', () => {
+        it('Deve retornar 200 e a URL do PDF da etiqueta', async () => {
+            req.body = { orders: ['01JK6D99A7SVYXV03C3ZFS7CXA'] };
+            const mockResposta = { url: 'https://sandbox.superfrete.com/print/01JK6D99A7.pdf' };
+            FreteService.imprimirEtiqueta.mockResolvedValue(mockResposta);
+
+            await FreteController.imprimirEtiqueta(req, res);
+
+            expect(FreteService.imprimirEtiqueta).toHaveBeenCalledWith(req.body);
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(mockResposta);
+        });
+    });
 });

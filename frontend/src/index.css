@@ -1194,6 +1194,31 @@ button {
     box-shadow: 0 4px 15px rgba(155, 89, 182, 0.2);
 }
 
+.btn-gerar-etiqueta {
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #1abc9c 0%, #16a085 50%, #1abc9c 100%);
+    background-size: 200% auto;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 15px rgba(26, 188, 156, 0.2);
+}
+
+.btn-gerar-etiqueta:hover {
+    background-position: right center;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(26, 188, 156, 0.4);
+}
+
+.btn-gerar-etiqueta:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .btn-buscar-frete:hover {
     background-position: right center;
     transform: translateY(-2px);

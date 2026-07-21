@@ -24,6 +24,7 @@ export default function Pdv() {
     const [freteSelecionado, setFreteSelecionado] = useState(0);
     const [nomeFreteSelecionado, setNomeFreteSelecionado] = useState('');
     const [carregandoFrete, setCarregandoFrete] = useState(false);
+    const [gerandoEtiqueta, setGerandoEtiqueta] = useState(false);
 
     const navigate = useNavigate();
 
@@ -126,6 +127,114 @@ export default function Pdv() {
             alert("Erro de conexão ao calcular frete.");
         } finally {
             setCarregandoFrete(false);
+        }
+    };
+
+    // 3.1 GERAR E IMPRIMIR ETIQUETA SUPERFRETE
+    const gerarEImprimirEtiqueta = async () => {
+        if (cepOrigem.length < 8 || cepDestino.length < 8) {
+            alert("Por favor, insira CEPs de origem e destino válidos.");
+            return;
+        }
+
+        setGerandoEtiqueta(true);
+        try {
+            const token = localStorage.getItem('token');
+
+            const payloadEtiqueta = {
+                from: {
+                    name: "CHRISTIAN SPERB",
+                    address: "MANOEL DOMINGOS FERREIRA",
+                    city: "GAROPABA",
+                    state_abbr: "SC",
+                    postal_code: cepOrigem.replace(/\D/g, ''),
+                    district: "Campo Duna",
+                    complement: "Casa",
+                    number: "445"
+                },
+                to: {
+                    name: cliente.trim() !== '' ? cliente : "Consumidor Final",
+                    address: "MANOEL DOMINGOS FERREIRA",
+                    city: "GAROPABA",
+                    state_abbr: "SC",
+                    postal_code: cepDestino.replace(/\D/g, ''),
+                    email: "suporte@borbolelala.com.br",
+                    complement: "",
+                    number: "100",
+                    district: "Centro",
+                    document: "00000000000"
+                },
+                options: {
+                    tags: []
+                },
+                volumes: {
+                    height: parseFloat(alturaCaixa) || 4,
+                    width: parseFloat(larguraCaixa) || 11,
+                    length: parseFloat(comprimentoCaixa) || 16,
+                    weight: parseFloat(pesoCaixa) || 0.3
+                },
+                platform: "Borbolêlalá Moda Infantil",
+                service: 1
+            };
+
+            const respostaEtiqueta = await fetch(`${import.meta.env.VITE_API_URL}/frete/etiqueta`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payloadEtiqueta)
+            });
+
+            if (!respostaEtiqueta.ok) {
+                const erro = await respostaEtiqueta.json();
+                alert(`Erro ao gerar etiqueta: ${erro.message || erro.erro || 'Falha no servidor'}`);
+                return;
+            }
+
+            const dadosEtiqueta = await respostaEtiqueta.json();
+            const tagId = dadosEtiqueta.id || (dadosEtiqueta.orders && dadosEtiqueta.orders[0]) || dadosEtiqueta.order_id;
+
+            if (!tagId) {
+                alert("Erro: ID de etiqueta não retornado pela SuperFrete.");
+                return;
+            }
+
+            const respostaImpressao = await fetch(`${import.meta.env.VITE_API_URL}/frete/imprimir`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ orders: [tagId] })
+            });
+
+            if (!respostaImpressao.ok) {
+                const erro = await respostaImpressao.json();
+                alert(`Erro ao buscar PDF da etiqueta: ${erro.message || erro.erro || 'Falha no servidor'}`);
+                return;
+            }
+
+            const dadosImpressao = await respostaImpressao.json();
+            const downloadUrl = dadosImpressao.url || dadosImpressao.link;
+
+            if (downloadUrl) {
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.download = `etiqueta-${tagId}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                alert("Etiqueta gerada com sucesso!");
+            }
+        } catch (erro) {
+            console.error("Erro na geração de etiqueta:", erro);
+            alert("Erro de conexão ao gerar/imprimir etiqueta.");
+        } finally {
+            setGerandoEtiqueta(false);
         }
     };
 
@@ -303,9 +412,12 @@ export default function Pdv() {
                                 </div>
                             </div>
 
-                            <div className="frete-busca-row">
-                                <button onClick={calcularFrete} disabled={carregandoFrete || cepOrigem.length !== 8 || cepDestino.length !== 8} className="btn-buscar-frete" style={{ width: '100%' }}>
-                                    {carregandoFrete ? '⏳' : 'Buscar'}
+                            <div className="frete-busca-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                <button onClick={calcularFrete} disabled={carregandoFrete || cepOrigem.length !== 8 || cepDestino.length !== 8} className="btn-buscar-frete" style={{ flex: '1 1 45%' }}>
+                                    {carregandoFrete ? '⏳ Buscando...' : '🚚 Buscar Frete'}
+                                </button>
+                                <button onClick={gerarEImprimirEtiqueta} disabled={gerandoEtiqueta || cepOrigem.length !== 8 || cepDestino.length !== 8} className="btn-gerar-etiqueta" style={{ flex: '1 1 45%' }}>
+                                    {gerandoEtiqueta ? '⏳ Gerando...' : '🏷️ Gerar etiqueta'}
                                 </button>
                             </div>
 
