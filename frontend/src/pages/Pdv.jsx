@@ -23,6 +23,7 @@ export default function Pdv() {
     const [opcoesFrete, setOpcoesFrete] = useState([]);
     const [freteSelecionado, setFreteSelecionado] = useState(0);
     const [nomeFreteSelecionado, setNomeFreteSelecionado] = useState('');
+    const [servicoFreteId, setServicoFreteId] = useState(1);
     const [carregandoFrete, setCarregandoFrete] = useState(false);
     const [gerandoEtiqueta, setGerandoEtiqueta] = useState(false);
 
@@ -174,7 +175,7 @@ export default function Pdv() {
                     weight: parseFloat(pesoCaixa) || 0.3
                 },
                 platform: "Borbolêlalá Moda Infantil",
-                service: 1
+                service: servicoFreteId || 1
             };
 
             const respostaEtiqueta = await fetch(`${import.meta.env.VITE_API_URL}/frete/etiqueta`, {
@@ -412,16 +413,13 @@ export default function Pdv() {
                                 </div>
                             </div>
 
-                            <div className="frete-busca-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                <button onClick={calcularFrete} disabled={carregandoFrete || cepOrigem.length !== 8 || cepDestino.length !== 8} className="btn-buscar-frete" style={{ flex: '1 1 45%' }}>
+                            <div className="frete-busca-row">
+                                <button onClick={calcularFrete} disabled={carregandoFrete || cepOrigem.length !== 8 || cepDestino.length !== 8} className="btn-buscar-frete" style={{ width: '100%' }}>
                                     {carregandoFrete ? '⏳ Buscando...' : '🚚 Buscar Frete'}
-                                </button>
-                                <button onClick={gerarEImprimirEtiqueta} disabled={gerandoEtiqueta || cepOrigem.length !== 8 || cepDestino.length !== 8} className="btn-gerar-etiqueta" style={{ flex: '1 1 45%' }}>
-                                    {gerandoEtiqueta ? '⏳ Gerando...' : '🏷️ Gerar etiqueta'}
                                 </button>
                             </div>
 
-                            {/* OPÇÕES DE FRETE RETORNADAS PELA API */}
+                            {/* OPÇÕES DE FRETE RETORNADAS PELA API E BOTÃO DE ETIQUETA */}
                             {opcoesFrete.length > 0 && (
                                 <div className="frete-opcoes">
                                     {opcoesFrete.filter(opcao => !opcao.error && !opcao.has_error && opcao.price).map((opcao, index) => (
@@ -433,6 +431,7 @@ export default function Pdv() {
                                                 onChange={() => {
                                                     setFreteSelecionado(parseFloat(opcao.price));
                                                     setNomeFreteSelecionado(opcao.name);
+                                                    setServicoFreteId(opcao.id || opcao.service || 1);
                                                 }}
                                             />
                                             <div>
@@ -441,6 +440,15 @@ export default function Pdv() {
                                             </div>
                                         </label>
                                     ))}
+
+                                    <button
+                                        onClick={gerarEImprimirEtiqueta}
+                                        disabled={gerandoEtiqueta || cepOrigem.length !== 8 || cepDestino.length !== 8}
+                                        className="btn-gerar-etiqueta"
+                                        style={{ width: '100%', marginTop: '12px' }}
+                                    >
+                                        {gerandoEtiqueta ? '⏳ Gerando...' : '🏷️ Gerar etiqueta de frete'}
+                                    </button>
                                 </div>
                             )}
                         </div>

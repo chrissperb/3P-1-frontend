@@ -114,8 +114,9 @@ describe('Componente PDV - Testes de Comportamento', () => {
         });
     });
 
-    it('Deve executar o fluxo completo de gerar e imprimir etiqueta de frete', async () => {
+    it('Deve executar o fluxo completo de gerar e imprimir etiqueta de frete após buscar o frete', async () => {
         fetch.mockResolvedValueOnce({ status: 200, ok: true, json: async () => mockProdutos })
+            .mockResolvedValueOnce({ status: 200, ok: true, json: async () => [{ id: 1, name: 'SEDEX', price: '25.00', delivery_time: '2' }] })
             .mockResolvedValueOnce({ status: 200, ok: true, json: async () => ({ id: 'TAG-12345' }) })
             .mockResolvedValueOnce({ status: 200, ok: true, json: async () => ({ url: 'https://sandbox.superfrete.com/print/TAG-12345.pdf' }) });
 
@@ -128,6 +129,12 @@ describe('Componente PDV - Testes de Comportamento', () => {
 
         const inputCepDestino = screen.getByPlaceholderText(/CEP do Destino/i);
         fireEvent.change(inputCepDestino, { target: { value: '88495000' } });
+
+        const botaoBuscar = screen.getByText(/Buscar/i);
+        fireEvent.click(botaoBuscar);
+
+        const opcaoFrete = await screen.findByText(/SEDEX - R\$ 25.00/i);
+        expect(opcaoFrete).toBeInTheDocument();
 
         const botaoGerarEtiqueta = screen.getByText(/Gerar etiqueta/i);
         fireEvent.click(botaoGerarEtiqueta);
