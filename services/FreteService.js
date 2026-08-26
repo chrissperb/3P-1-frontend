@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const getBaseUrl = () => process.env.SUPER_FRETE_URL || 'https://sandbox.superfrete.com';
+const getBaseUrl = () => process.env.SUPER_FRETE_URL || 'https://api.superfrete.com';
 
 class FreteService {
 
