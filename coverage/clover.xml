@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1783467592543" clover="3.2.0">
-  <project timestamp="1783467592543" name="All files">
-    <metrics statements="242" coveredstatements="235" conditionals="54" coveredconditionals="48" methods="31" coveredmethods="28" elements="327" coveredelements="311" complexity="0" loc="242" ncloc="242" packages="8" files="18" classes="18"/>
+<coverage generated="1788998896282" clover="3.2.0">
+  <project timestamp="1788998896282" name="All files">
+    <metrics statements="274" coveredstatements="253" conditionals="64" coveredconditionals="50" methods="36" coveredmethods="33" elements="374" coveredelements="336" complexity="0" loc="274" ncloc="274" packages="8" files="18" classes="18"/>
     <package name="3P-1-frontend">
       <metrics statements="34" coveredstatements="28" conditionals="6" coveredconditionals="3" methods="4" coveredmethods="1"/>
       <file name="server.js" path="/home/christian-sperb/Documents/projects/unyleya/3P-1-frontend/server.js">
@@ -43,18 +43,32 @@
       </file>
     </package>
     <package name="3P-1-frontend.controllers">
-      <metrics statements="67" coveredstatements="67" conditionals="4" coveredconditionals="4" methods="12" coveredmethods="12"/>
+      <metrics statements="81" coveredstatements="73" conditionals="8" coveredconditionals="4" methods="14" coveredmethods="14"/>
       <file name="FreteController.js" path="/home/christian-sperb/Documents/projects/unyleya/3P-1-frontend/controllers/FreteController.js">
-        <metrics statements="9" coveredstatements="9" conditionals="2" coveredconditionals="2" methods="1" coveredmethods="1"/>
+        <metrics statements="23" coveredstatements="15" conditionals="6" coveredconditionals="2" methods="3" coveredmethods="3"/>
         <line num="1" count="2" type="stmt"/>
         <line num="6" count="3" type="stmt"/>
         <line num="7" count="3" type="stmt"/>
-        <line num="9" count="1" type="stmt"/>
-        <line num="12" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="8" count="1" type="stmt"/>
+        <line num="10" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="11" count="1" type="stmt"/>
         <line num="13" count="1" type="stmt"/>
-        <line num="16" count="1" type="stmt"/>
-        <line num="17" count="1" type="stmt"/>
-        <line num="22" count="2" type="stmt"/>
+        <line num="14" count="1" type="stmt"/>
+        <line num="19" count="1" type="stmt"/>
+        <line num="20" count="1" type="stmt"/>
+        <line num="21" count="1" type="stmt"/>
+        <line num="23" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="32" count="1" type="stmt"/>
+        <line num="33" count="1" type="stmt"/>
+        <line num="34" count="1" type="stmt"/>
+        <line num="36" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="45" count="2" type="stmt"/>
       </file>
       <file name="PedidoController.js" path="/home/christian-sperb/Documents/projects/unyleya/3P-1-frontend/controllers/PedidoController.js">
         <metrics statements="22" coveredstatements="22" conditionals="0" coveredconditionals="0" methods="4" coveredmethods="4"/>
@@ -188,14 +202,16 @@
       </file>
     </package>
     <package name="3P-1-frontend.routes">
-      <metrics statements="30" coveredstatements="30" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <metrics statements="32" coveredstatements="32" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
       <file name="freteRoutes.js" path="/home/christian-sperb/Documents/projects/unyleya/3P-1-frontend/routes/freteRoutes.js">
-        <metrics statements="5" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <metrics statements="7" coveredstatements="7" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
         <line num="3" count="1" type="stmt"/>
         <line num="5" count="1" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
         <line num="7" count="1" type="stmt"/>
+        <line num="9" count="1" type="stmt"/>
       </file>
       <file name="pedidoRoutes.js" path="/home/christian-sperb/Documents/projects/unyleya/3P-1-frontend/routes/pedidoRoutes.js">
         <metrics statements="9" coveredstatements="9" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
@@ -233,17 +249,33 @@
       </file>
     </package>
     <package name="3P-1-frontend.services">
-      <metrics statements="75" coveredstatements="74" conditionals="28" coveredconditionals="25" methods="12" coveredmethods="12"/>
+      <metrics statements="91" coveredstatements="84" conditionals="34" coveredconditionals="27" methods="15" coveredmethods="15"/>
       <file name="FreteService.js" path="/home/christian-sperb/Documents/projects/unyleya/3P-1-frontend/services/FreteService.js">
-        <metrics statements="8" coveredstatements="7" conditionals="2" coveredconditionals="1" methods="1" coveredmethods="1"/>
+        <metrics statements="24" coveredstatements="17" conditionals="8" coveredconditionals="3" methods="4" coveredmethods="4"/>
         <line num="1" count="3" type="stmt"/>
-        <line num="6" count="2" type="stmt"/>
-        <line num="7" count="2" type="stmt"/>
-        <line num="20" count="1" type="stmt"/>
-        <line num="23" count="1" type="cond" truecount="1" falsecount="1"/>
-        <line num="24" count="1" type="stmt"/>
-        <line num="26" count="0" type="stmt"/>
-        <line num="31" count="3" type="stmt"/>
+        <line num="3" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="8" count="2" type="stmt"/>
+        <line num="9" count="2" type="stmt"/>
+        <line num="10" count="2" type="stmt"/>
+        <line num="23" count="1" type="stmt"/>
+        <line num="26" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="27" count="1" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="34" count="1" type="stmt"/>
+        <line num="35" count="1" type="stmt"/>
+        <line num="36" count="1" type="stmt"/>
+        <line num="49" count="1" type="stmt"/>
+        <line num="52" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="60" count="1" type="stmt"/>
+        <line num="61" count="1" type="stmt"/>
+        <line num="62" count="1" type="stmt"/>
+        <line num="75" count="1" type="stmt"/>
+        <line num="78" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="79" count="0" type="stmt"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="86" count="3" type="stmt"/>
       </file>
       <file name="PedidoService.js" path="/home/christian-sperb/Documents/projects/unyleya/3P-1-frontend/services/PedidoService.js">
         <metrics statements="31" coveredstatements="31" conditionals="12" coveredconditionals="10" methods="4" coveredmethods="4"/>
