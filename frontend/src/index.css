@@ -1169,6 +1169,38 @@ button {
     margin-bottom: 10px;
 }
 
+.frete-destinatario-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.frete-destinatario-grid .frete-campo-largo {
+    grid-column: 1 / -1;
+}
+
+.frete-destinatario-grid .frete-input {
+    width: 100%;
+    padding: 8px 12px;
+}
+
+.frete-cep-status {
+    margin: 0 0 10px 0;
+    font-size: 0.75rem;
+    color: #7f8c8d;
+}
+
+@media (max-width: 480px) {
+    .frete-destinatario-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .frete-destinatario-grid .frete-campo-largo {
+        grid-column: auto;
+    }
+}
+
 .frete-label-sm {
     font-size: 0.75rem;
     color: #7f8c8d;

@@ -1,6 +1,50 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+// Endereço fixo da loja (remetente da etiqueta)
+const ENDERECO_LOJA = {
+    name: "CHRISTIAN SPERB",
+    address: "MANOEL DOMINGOS FERREIRA",
+    city: "GAROPABA",
+    state_abbr: "SC",
+    district: "Campo Duna",
+    complement: "Casa",
+    number: "445"
+};
+
+const ENDERECO_DESTINO_VAZIO = {
+    logradouro: '',
+    numero: '',
+    complemento: '',
+    bairro: '',
+    cidade: '',
+    uf: ''
+};
+
+const validarDestinatario = ({ nome, documento, email, cep, endereco }) => {
+    const erros = [];
+
+    if (!nome.trim()) erros.push('Nome do destinatário');
+
+    const documentoLimpo = documento.replace(/\D/g, '');
+    if (documentoLimpo.length !== 11 && documentoLimpo.length !== 14) {
+        erros.push('CPF/CNPJ (11 ou 14 dígitos)');
+    }
+
+    if (!/^\d{8}$/.test(cep)) erros.push('CEP de destino (8 dígitos)');
+    if (!endereco.logradouro.trim()) erros.push('Logradouro');
+    if (!endereco.numero.trim()) erros.push('Número');
+    if (!endereco.bairro.trim()) erros.push('Bairro');
+    if (!endereco.cidade.trim()) erros.push('Cidade');
+    if (!/^[A-Za-z]{2}$/.test(endereco.uf.trim())) erros.push('UF (2 letras)');
+
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+        erros.push('E-mail válido');
+    }
+
+    return erros;
+};
+
 export default function Pdv() {
     const [produtos, setProdutos] = useState([]);
     const [categoriaAtiva, setCategoriaAtiva] = useState('Todas');
@@ -19,6 +63,12 @@ export default function Pdv() {
     const [alturaCaixa, setAlturaCaixa] = useState('4');
     const [larguraCaixa, setLarguraCaixa] = useState('11');
     const [comprimentoCaixa, setComprimentoCaixa] = useState('16');
+
+    // 📦 DADOS DO DESTINATÁRIO (ETIQUETA)
+    const [documentoDestino, setDocumentoDestino] = useState('');
+    const [emailDestino, setEmailDestino] = useState('');
+    const [enderecoDestino, setEnderecoDestino] = useState(ENDERECO_DESTINO_VAZIO);
+    const [buscandoCep, setBuscandoCep] = useState(false);
 
     const [opcoesFrete, setOpcoesFrete] = useState([]);
     const [freteSelecionado, setFreteSelecionado] = useState(0);
@@ -131,10 +181,66 @@ export default function Pdv() {
         }
     };
 
-    // 3.1 GERAR E IMPRIMIR ETIQUETA SUPERFRETE
+    // 3.1 BUSCAR ENDEREÇO PELO CEP (ViaCEP) E PREENCHER O DESTINATÁRIO
+    const alterarCepDestino = (valor) => {
+        const cepLimpo = valor.replace(/\D/g, '');
+        if (cepLimpo !== cepDestino) {
+            setEnderecoDestino(ENDERECO_DESTINO_VAZIO);
+        }
+        setCepDestino(cepLimpo);
+    };
+
+    const atualizarEnderecoDestino = (campo, valor) => {
+        setEnderecoDestino((enderecoAtual) => ({ ...enderecoAtual, [campo]: valor }));
+    };
+
+    const buscarEnderecoPorCep = async () => {
+        const cepLimpo = cepDestino.replace(/\D/g, '');
+        if (!/^\d{8}$/.test(cepLimpo)) return;
+
+        setBuscandoCep(true);
+        try {
+            const resposta = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+            if (!resposta.ok) return;
+
+            const dados = await resposta.json();
+            if (dados.erro) {
+                alert("CEP não encontrado. Preencha o endereço manualmente.");
+                return;
+            }
+
+            setEnderecoDestino((enderecoAtual) => ({
+                ...enderecoAtual,
+                logradouro: dados.logradouro || '',
+                bairro: dados.bairro || '',
+                cidade: dados.localidade || '',
+                uf: dados.uf || ''
+            }));
+        } catch (erro) {
+            console.error("Erro ao buscar CEP:", erro);
+            alert("Não foi possível buscar o CEP. Preencha o endereço manualmente.");
+        } finally {
+            setBuscandoCep(false);
+        }
+    };
+
+    // 3.2 GERAR E IMPRIMIR ETIQUETA SUPERFRETE
     const gerarEImprimirEtiqueta = async () => {
-        if (cepOrigem.length < 8 || cepDestino.length < 8) {
-            alert("Por favor, insira CEPs de origem e destino válidos.");
+        const errosDestinatario = validarDestinatario({
+            nome: cliente,
+            documento: documentoDestino,
+            email: emailDestino,
+            cep: cepDestino,
+            endereco: enderecoDestino
+        });
+
+        if (errosDestinatario.length > 0) {
+            alert(`Preencha os dados do destinatário:\n- ${errosDestinatario.join('\n- ')}`);
+            return;
+        }
+
+        if (cepOrigem.length < 8) {
+            alert("Por favor, insira um CEP de origem válido.");
             return;
         }
 
@@ -144,26 +250,20 @@ export default function Pdv() {
 
             const payloadEtiqueta = {
                 from: {
-                    name: "CHRISTIAN SPERB",
-                    address: "MANOEL DOMINGOS FERREIRA",
-                    city: "GAROPABA",
-                    state_abbr: "SC",
-                    postal_code: cepOrigem.replace(/\D/g, ''),
-                    district: "Campo Duna",
-                    complement: "Casa",
-                    number: "445"
+                    ...ENDERECO_LOJA,
+                    postal_code: cepOrigem.replace(/\D/g, '')
                 },
                 to: {
-                    name: cliente.trim() !== '' ? cliente : "Consumidor Final",
-                    address: "MANOEL DOMINGOS FERREIRA",
-                    city: "GAROPABA",
-                    state_abbr: "SC",
+                    name: cliente.trim(),
+                    address: enderecoDestino.logradouro.trim(),
+                    city: enderecoDestino.cidade.trim(),
+                    state_abbr: enderecoDestino.uf.trim().toUpperCase(),
                     postal_code: cepDestino.replace(/\D/g, ''),
-                    email: "suporte@borbolelala.com.br",
-                    complement: "",
-                    number: "100",
-                    district: "Centro",
-                    document: "00000000000"
+                    email: emailDestino.trim(),
+                    complement: enderecoDestino.complemento.trim(),
+                    number: enderecoDestino.numero.trim(),
+                    district: enderecoDestino.bairro.trim(),
+                    document: documentoDestino.replace(/\D/g, '')
                 },
                 options: {
                     tags: []
@@ -252,9 +352,10 @@ export default function Pdv() {
             })),
             endereco: {
                 cep: cepDestino !== '' ? cepDestino : '00000000',
-                logradouro: cepDestino !== '' ? 'Endereço a confirmar' : 'Retirada na Loja',
-                cidade: cepDestino !== '' ? 'A confirmar' : 'Loja Física',
-                estado: cepDestino !== '' ? 'NI' : 'LF'
+                logradouro: enderecoDestino.logradouro !== '' ? enderecoDestino.logradouro : 'Retirada na Loja',
+                bairro: enderecoDestino.bairro !== '' ? enderecoDestino.bairro : '-',
+                cidade: enderecoDestino.cidade !== '' ? enderecoDestino.cidade : 'Loja Física',
+                estado: enderecoDestino.uf !== '' ? enderecoDestino.uf : 'LF'
             },
             frete: freteSelecionado // Salvamos o frete no banco para relatórios
         };
@@ -274,6 +375,9 @@ export default function Pdv() {
                 setCarrinho([]);
                 setCliente('');
                 setCepDestino('');
+                setDocumentoDestino('');
+                setEmailDestino('');
+                setEnderecoDestino(ENDERECO_DESTINO_VAZIO);
                 setFreteSelecionado(0);
                 setNomeFreteSelecionado('');
                 setOpcoesFrete([]);
@@ -361,10 +465,127 @@ export default function Pdv() {
                             ))}
                         </div>
 
-                        {/* DADOS OPCIONAIS E FRETE */}
+                        {/* DADOS DO DESTINATÁRIO E FRETE */}
                         <div className="frete-container">
-                            <label className="frete-label">👤 Nome do Cliente (Opcional):</label>
-                            <input type="text" value={cliente} onChange={(e) => setCliente(e.target.value)} className="frete-input frete-input-cliente" placeholder="Ex: Consumidor Final" />
+                            <h4>📦 Dados do destinatário</h4>
+
+                            <label className="frete-label" htmlFor="cliente">Nome do destinatário</label>
+                            <input
+                                id="cliente"
+                                type="text"
+                                value={cliente}
+                                onChange={(e) => setCliente(e.target.value)}
+                                className="frete-input frete-input-cliente"
+                                placeholder="Ex: Maria da Silva"
+                            />
+
+                            <div className="frete-destinatario-grid">
+                                <div>
+                                    <label className="frete-label-sm" htmlFor="documentoDestino">CPF/CNPJ</label>
+                                    <input
+                                        id="documentoDestino"
+                                        type="text"
+                                        inputMode="numeric"
+                                        value={documentoDestino}
+                                        onChange={(e) => setDocumentoDestino(e.target.value.replace(/\D/g, ''))}
+                                        className="frete-input"
+                                        placeholder="Somente números"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="frete-label-sm" htmlFor="emailDestino">E-mail (opcional)</label>
+                                    <input
+                                        id="emailDestino"
+                                        type="email"
+                                        value={emailDestino}
+                                        onChange={(e) => setEmailDestino(e.target.value)}
+                                        className="frete-input"
+                                        placeholder="cliente@email.com"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="frete-label-sm" htmlFor="cepDestino">CEP Destino</label>
+                                    <input
+                                        id="cepDestino"
+                                        type="text"
+                                        placeholder="CEP do Destino"
+                                        maxLength="8"
+                                        value={cepDestino}
+                                        onChange={(e) => alterarCepDestino(e.target.value)}
+                                        onBlur={buscarEnderecoPorCep}
+                                        className="frete-input"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="frete-label-sm" htmlFor="logradouroDestino">Logradouro</label>
+                                    <input
+                                        id="logradouroDestino"
+                                        type="text"
+                                        value={enderecoDestino.logradouro}
+                                        onChange={(e) => atualizarEnderecoDestino('logradouro', e.target.value)}
+                                        className="frete-input"
+                                        placeholder="Rua, avenida..."
+                                    />
+                                </div>
+                                <div>
+                                    <label className="frete-label-sm" htmlFor="numeroDestino">Número</label>
+                                    <input
+                                        id="numeroDestino"
+                                        type="text"
+                                        value={enderecoDestino.numero}
+                                        onChange={(e) => atualizarEnderecoDestino('numero', e.target.value)}
+                                        className="frete-input"
+                                        placeholder="123"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="frete-label-sm" htmlFor="complementoDestino">Complemento</label>
+                                    <input
+                                        id="complementoDestino"
+                                        type="text"
+                                        value={enderecoDestino.complemento}
+                                        onChange={(e) => atualizarEnderecoDestino('complemento', e.target.value)}
+                                        className="frete-input"
+                                        placeholder="Apto, casa..."
+                                    />
+                                </div>
+                                <div className="frete-campo-largo">
+                                    <label className="frete-label-sm" htmlFor="bairroDestino">Bairro</label>
+                                    <input
+                                        id="bairroDestino"
+                                        type="text"
+                                        value={enderecoDestino.bairro}
+                                        onChange={(e) => atualizarEnderecoDestino('bairro', e.target.value)}
+                                        className="frete-input"
+                                        placeholder="Bairro"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="frete-label-sm" htmlFor="cidadeDestino">Cidade</label>
+                                    <input
+                                        id="cidadeDestino"
+                                        type="text"
+                                        value={enderecoDestino.cidade}
+                                        onChange={(e) => atualizarEnderecoDestino('cidade', e.target.value)}
+                                        className="frete-input"
+                                        placeholder="Cidade"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="frete-label-sm" htmlFor="ufDestino">UF</label>
+                                    <input
+                                        id="ufDestino"
+                                        type="text"
+                                        maxLength="2"
+                                        value={enderecoDestino.uf}
+                                        onChange={(e) => atualizarEnderecoDestino('uf', e.target.value.replace(/[^A-Za-z]/g, '').toUpperCase())}
+                                        className="frete-input"
+                                        placeholder="SC"
+                                    />
+                                </div>
+                            </div>
+
+                            {buscandoCep && <p className="frete-cep-status">Buscando endereço pelo CEP...</p>}
 
                             <h4>🚚 Cálculo de Frete</h4>
 
@@ -397,17 +618,6 @@ export default function Pdv() {
                                         maxLength="8"
                                         value={cepOrigem}
                                         onChange={(e) => setCepOrigem(e.target.value.replace(/\D/g, ''))}
-                                        className="frete-input frete-input-cep"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="frete-label-sm">CEP Destino</label>
-                                    <input
-                                        type="text"
-                                        placeholder="CEP do Destino"
-                                        maxLength="8"
-                                        value={cepDestino}
-                                        onChange={(e) => setCepDestino(e.target.value.replace(/\D/g, ''))}
                                         className="frete-input frete-input-cep"
                                     />
                                 </div>
