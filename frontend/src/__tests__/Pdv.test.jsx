@@ -208,6 +208,156 @@ describe('Componente PDV - Testes de Comportamento', () => {
         expect(screen.getByLabelText(/^Cidade$/i).value).toBe('Curitiba');
     });
 
+    it('Deve calcular o frete sem seguro por padrão', async () => {
+        render(<BrowserRouter><Pdv /></BrowserRouter>);
+
+        await screen.findByText('Vestido Floral');
+        await adicionarPrimeiroProduto();
+
+        expect(screen.queryByLabelText(/^Valor declarado/i)).not.toBeInTheDocument();
+
+        fireEvent.change(screen.getByPlaceholderText(/CEP do Destino/i), { target: { value: '80000000' } });
+        buscarFrete();
+
+        await screen.findByText(/SEDEX - R\$ 25.00/i);
+
+        const chamadaFrete = fetch.mock.calls.find(([url]) => String(url).endsWith('/frete'));
+        expect(JSON.parse(chamadaFrete[1].body).options).toEqual({
+            own_hand: false,
+            receipt: false,
+            insurance_value: 0,
+            use_insurance_value: false
+        });
+    });
+
+    it('Deve exibir o campo de valor declarado ao ligar o seguro e enviá-lo no cálculo', async () => {
+        render(<BrowserRouter><Pdv /></BrowserRouter>);
+
+        await screen.findByText('Vestido Floral');
+        await adicionarPrimeiroProduto();
+
+        expect(screen.queryByLabelText(/^Valor declarado/i)).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('switch', { name: /Adicionar seguro/i }));
+
+        const campoValor = await screen.findByLabelText(/^Valor declarado/i);
+        fireEvent.change(campoValor, { target: { value: '250.50' } });
+
+        fireEvent.change(screen.getByPlaceholderText(/CEP do Destino/i), { target: { value: '80000000' } });
+        buscarFrete();
+
+        await screen.findByText(/SEDEX - R\$ 25.00/i);
+
+        const chamadaFrete = fetch.mock.calls.find(([url]) => String(url).endsWith('/frete'));
+        const options = JSON.parse(chamadaFrete[1].body).options;
+
+        expect(options.insurance_value).toBe(250.5);
+        expect(options.use_insurance_value).toBe(true);
+    });
+
+    it('Não deve calcular o frete com seguro ligado e valor declarado inválido', async () => {
+        const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
+
+        render(<BrowserRouter><Pdv /></BrowserRouter>);
+
+        await screen.findByText('Vestido Floral');
+        await adicionarPrimeiroProduto();
+
+        fireEvent.click(screen.getByRole('switch', { name: /Adicionar seguro/i }));
+        fireEvent.change(screen.getByPlaceholderText(/CEP do Destino/i), { target: { value: '80000000' } });
+
+        buscarFrete();
+
+        await waitFor(() => {
+            expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('valor declarado'));
+        });
+
+        expect(fetch.mock.calls.some(([url]) => String(url).endsWith('/frete'))).toBe(false);
+    });
+
+    it('Deve limpar as opções de frete quando o valor declarado for alterado após a busca', async () => {
+        render(<BrowserRouter><Pdv /></BrowserRouter>);
+
+        await screen.findByText('Vestido Floral');
+        await adicionarPrimeiroProduto();
+
+        fireEvent.click(screen.getByRole('switch', { name: /Adicionar seguro/i }));
+        fireEvent.change(screen.getByLabelText(/^Valor declarado/i), { target: { value: '250.50' } });
+        fireEvent.change(screen.getByPlaceholderText(/CEP do Destino/i), { target: { value: '80000000' } });
+
+        buscarFrete();
+
+        await screen.findByText(/SEDEX - R\$ 25.00/i);
+
+        fireEvent.change(screen.getByLabelText(/^Valor declarado/i), { target: { value: '300' } });
+
+        expect(screen.queryByText(/SEDEX - R\$ 25.00/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/Gerar etiqueta/i)).not.toBeInTheDocument();
+    });
+
+    it('Deve enviar o valor declarado também no payload da etiqueta', async () => {
+        render(<BrowserRouter><Pdv /></BrowserRouter>);
+
+        await screen.findByText('Vestido Floral');
+        await adicionarPrimeiroProduto();
+
+        preencherDestinatario();
+
+        fireEvent.click(screen.getByRole('switch', { name: /Adicionar seguro/i }));
+        fireEvent.change(screen.getByLabelText(/^Valor declarado/i), { target: { value: '250.50' } });
+
+        buscarFrete();
+
+        await screen.findByText(/SEDEX - R\$ 25.00/i);
+        fireEvent.click(screen.getByText(/Gerar etiqueta/i));
+
+        await waitFor(() => {
+            expect(fetch.mock.calls.some(([url]) => String(url).endsWith('/frete/etiqueta'))).toBe(true);
+        });
+
+        const chamadaEtiqueta = fetch.mock.calls.find(([url]) => String(url).endsWith('/frete/etiqueta'));
+        const options = JSON.parse(chamadaEtiqueta[1].body).options;
+
+        expect(options).toEqual({
+            tags: [],
+            non_commercial: true,
+            insurance_value: 250.5,
+            use_insurance_value: true
+        });
+    });
+
+    it('Deve enviar a declaração de conteúdo com o valor declarado', async () => {
+        render(<BrowserRouter><Pdv /></BrowserRouter>);
+
+        await screen.findByText('Vestido Floral');
+
+        await adicionarPrimeiroProduto();
+
+        preencherDestinatario();
+
+        fireEvent.click(screen.getByRole('switch', { name: /Adicionar seguro/i }));
+        fireEvent.change(screen.getByLabelText(/^Valor declarado/i), { target: { value: '250.50' } });
+
+        buscarFrete();
+
+        await screen.findByText(/SEDEX - R\$ 25.00/i);
+        fireEvent.click(screen.getByText(/Gerar etiqueta/i));
+
+        await waitFor(() => {
+            expect(fetch.mock.calls.some(([url]) => String(url).endsWith('/frete/etiqueta'))).toBe(true);
+        });
+
+        const chamadaEtiqueta = fetch.mock.calls.find(([url]) => String(url).endsWith('/frete/etiqueta'));
+        const corpoEtiqueta = JSON.parse(chamadaEtiqueta[1].body);
+
+        expect(corpoEtiqueta.products).toEqual([
+            { name: 'Vestuário', quantity: 1, unitary_value: 250.5 }
+        ]);
+
+        const corpoSerializado = JSON.stringify(corpoEtiqueta);
+        expect(corpoSerializado).not.toContain('26.4');
+    });
+
     it('Deve executar o fluxo completo de gerar e imprimir etiqueta com os dados do destinatário', async () => {
         render(<BrowserRouter><Pdv /></BrowserRouter>);
 
@@ -251,6 +401,45 @@ describe('Componente PDV - Testes de Comportamento', () => {
             district: destinatario.bairro,
             document: destinatario.documento
         });
+        expect(corpoEtiqueta.options).toEqual({
+            tags: [],
+            non_commercial: true,
+            insurance_value: 0,
+            use_insurance_value: false
+        });
+        expect(corpoEtiqueta.products).toEqual([
+            { name: 'Vestuário', quantity: 1, unitary_value: 0 }
+        ]);
+    });
+
+    it('Deve exibir os detalhes de validação retornados pela SuperFrete', async () => {
+        fetch.mockImplementation(criarRotas({
+            etiqueta: resposta({
+                errors: { 'products.unitary_value': ['(products.unitary_value) é obrigatório.'] },
+                message: 'Ocorreu um ou mais erros.'
+            }, 400, false)
+        }));
+
+        const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
+        vi.spyOn(console, 'error').mockImplementation(() => { });
+
+        render(<BrowserRouter><Pdv /></BrowserRouter>);
+
+        await screen.findByText('Vestido Floral');
+        await adicionarPrimeiroProduto();
+        preencherDestinatario();
+        buscarFrete();
+
+        await screen.findByText(/SEDEX - R\$ 25.00/i);
+        fireEvent.click(screen.getByText(/Gerar etiqueta/i));
+
+        await waitFor(() => {
+            expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining(
+                'products.unitary_value: (products.unitary_value) é obrigatório.'
+            ));
+        });
+
+        expect(alertSpy).not.toHaveBeenCalledWith(expect.stringContaining('Ocorreu um ou mais erros.'));
     });
 
     it('Não deve usar dados fixos do remetente no destinatário da etiqueta', async () => {

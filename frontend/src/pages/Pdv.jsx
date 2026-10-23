@@ -21,6 +21,23 @@ const ENDERECO_DESTINO_VAZIO = {
     uf: ''
 };
 
+// Traduz o corpo de erro da API (inclusive validações da SuperFrete) em texto legível.
+const extrairMensagemErro = (erro) => {
+    if (!erro) return 'Falha no servidor';
+
+    if (erro.errors && typeof erro.errors === 'object') {
+        const detalhes = Object.entries(erro.errors).flatMap(([campo, mensagens]) => {
+            const lista = Array.isArray(mensagens) ? mensagens : [mensagens];
+            return lista.map(mensagem => `${campo}: ${mensagem}`);
+        });
+
+        if (detalhes.length > 0) return detalhes.join('\n');
+    }
+
+    if (Array.isArray(erro.message)) return erro.message.join('\n');
+    return erro.message || erro.erro || erro.error || 'Falha no servidor';
+};
+
 const validarDestinatario = ({ nome, documento, email, cep, endereco }) => {
     const erros = [];
 
@@ -69,6 +86,10 @@ export default function Pdv() {
     const [emailDestino, setEmailDestino] = useState('');
     const [enderecoDestino, setEnderecoDestino] = useState(ENDERECO_DESTINO_VAZIO);
     const [buscandoCep, setBuscandoCep] = useState(false);
+
+    // 🛡️ SEGURO / VALOR DECLARADO
+    const [seguroAtivo, setSeguroAtivo] = useState(false);
+    const [valorDeclarado, setValorDeclarado] = useState('');
 
     const [opcoesFrete, setOpcoesFrete] = useState([]);
     const [freteSelecionado, setFreteSelecionado] = useState(0);
@@ -131,10 +152,40 @@ export default function Pdv() {
     const subtotalProdutos = carrinho.reduce((acc, item) => acc + (item.precoVenda * item.quantidadeComprada), 0);
     const totalFinal = subtotalProdutos + freteSelecionado;
 
+    // 2.1 SEGURO: QUALQUER ALTERAÇÃO INVALIDA A COTAÇÃO ANTERIOR
+    const limparOpcoesFrete = () => {
+        setOpcoesFrete([]);
+        setFreteSelecionado(0);
+        setNomeFreteSelecionado('');
+    };
+
+    const alterarSeguro = (ativo) => {
+        setSeguroAtivo(ativo);
+        limparOpcoesFrete();
+    };
+
+    const alterarValorDeclarado = (valor) => {
+        setValorDeclarado(valor);
+        limparOpcoesFrete();
+    };
+
+    const obterValorSeguro = () => (seguroAtivo ? Number(valorDeclarado) : 0);
+
+    const seguroValido = () => {
+        if (!seguroAtivo) return true;
+        const valor = Number(valorDeclarado);
+        return Number.isFinite(valor) && valor > 0;
+    };
+
     // 3. CALCULAR FRETE COM DIMENSÕES DINÂMICAS E CEP ORIGEM EDITÁVEL
     const calcularFrete = async () => {
         if (cepOrigem.length < 8 || cepDestino.length < 8) {
             alert("Por favor, insira um CEP válido.");
+            return;
+        }
+
+        if (!seguroValido()) {
+            alert("Informe um valor declarado maior que zero.");
             return;
         }
 
@@ -149,7 +200,12 @@ export default function Pdv() {
                 from: { postal_code: cepOrigem.replace(/\D/g, '') },
                 to: { postal_code: cepDestino.replace(/\D/g, '') },
                 services: "1,2,17",
-                options: { own_hand: false, receipt: false, insurance_value: 0, use_insurance_value: false },
+                options: {
+                    own_hand: false,
+                    receipt: false,
+                    insurance_value: obterValorSeguro(),
+                    use_insurance_value: seguroAtivo
+                },
                 package: {
                     weight: parseFloat(pesoCaixa) || 0.3,
                     height: parseFloat(alturaCaixa) || 4,
@@ -239,6 +295,11 @@ export default function Pdv() {
             return;
         }
 
+        if (!seguroValido()) {
+            alert("Informe um valor declarado maior que zero.");
+            return;
+        }
+
         if (cepOrigem.length < 8) {
             alert("Por favor, insira um CEP de origem válido.");
             return;
@@ -266,8 +327,16 @@ export default function Pdv() {
                     document: documentoDestino.replace(/\D/g, '')
                 },
                 options: {
-                    tags: []
+                    tags: [],
+                    non_commercial: true,
+                    insurance_value: obterValorSeguro(),
+                    use_insurance_value: seguroAtivo
                 },
+                products: [{
+                    name: 'Vestuário',
+                    quantity: 1,
+                    unitary_value: obterValorSeguro()
+                }],
                 volumes: {
                     height: parseFloat(alturaCaixa) || 4,
                     width: parseFloat(larguraCaixa) || 11,
@@ -288,8 +357,9 @@ export default function Pdv() {
             });
 
             if (!respostaEtiqueta.ok) {
-                const erro = await respostaEtiqueta.json();
-                alert(`Erro ao gerar etiqueta: ${erro.message || erro.erro || 'Falha no servidor'}`);
+                const erro = await respostaEtiqueta.json().catch(() => null);
+                console.error("Resposta de erro ao gerar etiqueta:", erro);
+                alert(`Erro ao gerar etiqueta:\n${extrairMensagemErro(erro)}`);
                 return;
             }
 
@@ -311,8 +381,9 @@ export default function Pdv() {
             });
 
             if (!respostaImpressao.ok) {
-                const erro = await respostaImpressao.json();
-                alert(`Erro ao buscar PDF da etiqueta: ${erro.message || erro.erro || 'Falha no servidor'}`);
+                const erro = await respostaImpressao.json().catch(() => null);
+                console.error("Resposta de erro ao buscar PDF da etiqueta:", erro);
+                alert(`Erro ao buscar PDF da etiqueta:\n${extrairMensagemErro(erro)}`);
                 return;
             }
 
@@ -378,6 +449,8 @@ export default function Pdv() {
                 setDocumentoDestino('');
                 setEmailDestino('');
                 setEnderecoDestino(ENDERECO_DESTINO_VAZIO);
+                setSeguroAtivo(false);
+                setValorDeclarado('');
                 setFreteSelecionado(0);
                 setNomeFreteSelecionado('');
                 setOpcoesFrete([]);
@@ -608,6 +681,38 @@ export default function Pdv() {
                                     <input type="number" value={comprimentoCaixa} onChange={(e) => setComprimentoCaixa(e.target.value)} />
                                 </div>
                             </div>
+
+                            {/* 🛡️ SEGURO / VALOR DECLARADO */}
+                            <div className="frete-seguro-row">
+                                <label className="switch" htmlFor="seguroAtivo">
+                                    <input
+                                        id="seguroAtivo"
+                                        type="checkbox"
+                                        role="switch"
+                                        aria-label="Adicionar seguro (valor declarado)"
+                                        checked={seguroAtivo}
+                                        onChange={(e) => alterarSeguro(e.target.checked)}
+                                    />
+                                    <span className="switch-slider" aria-hidden="true"></span>
+                                </label>
+                                <span className="frete-label-sm">Adicionar seguro (valor declarado)</span>
+                            </div>
+
+                            {seguroAtivo && (
+                                <div className="frete-seguro-valor">
+                                    <label className="frete-label-sm" htmlFor="valorDeclarado">Valor declarado (R$)</label>
+                                    <input
+                                        id="valorDeclarado"
+                                        type="number"
+                                        min="0.01"
+                                        step="0.01"
+                                        value={valorDeclarado}
+                                        onChange={(e) => alterarValorDeclarado(e.target.value)}
+                                        className="frete-input"
+                                        placeholder="0,00"
+                                    />
+                                </div>
+                            )}
 
                             <div className="frete-ceps-grid">
                                 <div>
